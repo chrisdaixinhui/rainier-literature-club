@@ -1,0 +1,237 @@
+{
+  "upcoming": [
+    {
+      "id": "talk-v3",
+      "title": "雨山前Talk · Vol.3",
+      "titleEn": "YSQ Talk Vol.3",
+      "categoryId": "talk",
+      "date": "2026-07-12",
+      "time": "14:00",
+      "location": "Seattle, WA",
+      "locationDetail": "地点待公布",
+      "description": "雨山前Talk第三期即将上线。对谈嘉宾筹划中，敬请期待。购票通道即将开放。",
+      "descriptionEn": "YSQ Talk Vol.3 is coming. Guest speaker to be announced. Tickets opening soon.",
+      "poster": null,
+      "featured": true,
+      "registerUrl": "#",
+      "comingSoon": true,
+      "generalPrice": null,
+      "supporterPrice": null
+    }
+  ],
+  "categories": [
+    {
+      "id": "reading",
+      "name": "读书会",
+      "nameEn": "Weekly Reading",
+      "tagline": "重建社群，以书为桥",
+      "taglineEn": "Rebuilding community through literature",
+      "color": "#2E463D",
+      "textColor": "#ffffff",
+      "events": [
+        {
+          "id": "r1",
+          "title": "马克思与异化理论 · 主题共读",
+          "titleEn": "Marx & Alienation Theory",
+          "subType": "主题活动",
+          "date": "2026-05-03",
+          "status": "past",
+          "poster": null,
+          "description": "西雅图劳动节专题哲学书会，一起重读马克思，探讨异化、工作与自由。",
+          "reviewUrl": "#"
+        },
+        {
+          "id": "r2",
+          "title": "红楼梦共读",
+          "titleEn": "Dream of the Red Chamber",
+          "subType": "主题活动",
+          "date": "2026-04-05",
+          "status": "past",
+          "poster": null,
+          "description": "从第一回开始，不讲知识点，只聊感受与共鸣。",
+          "reviewUrl": "#"
+        },
+        {
+          "id": "r3",
+          "title": "乱讲PPT",
+          "titleEn": "Random Knowledge Night",
+          "subType": "乱讲PPT",
+          "date": "2026-03-15",
+          "status": "past",
+          "poster": null,
+          "description": "每人带一个你最近迷上的主题，5分钟乱讲给大家听。",
+          "reviewUrl": "#"
+        },
+        {
+          "id": "r4",
+          "title": "桌游社交夜",
+          "titleEn": "Board Game Social",
+          "subType": "桌游社交",
+          "date": "2026-02-22",
+          "status": "past",
+          "poster": null,
+          "description": "用中文玩桌游，不严肃，很欢乐。",
+          "reviewUrl": "#"
+        },
+        {
+          "id": "r5",
+          "title": "重建社群 · 第一期",
+          "titleEn": "Community Reboot Vol.1",
+          "subType": "重建社群",
+          "date": "2026-01-18",
+          "status": "past",
+          "poster": null,
+          "description": "新年第一聚，认识彼此，聊聊在西雅图读中文书是什么感受。",
+          "reviewUrl": "#"
+        }
+      ]
+    },
+    {
+      "id": "talk",
+      "name": "雨山前Talk",
+      "nameEn": "YSQ Talk",
+      "tagline": "与思想者对话",
+      "taglineEn": "Conversations with thinkers",
+      "color": "#3D4E5C",
+      "textColor": "#ffffff",
+      "events": [
+        {
+          "id": "t1",
+          "title": "Vol.3 · 嘉宾筹划中",
+          "titleEn": "Vol.3 · Guest TBA",
+          "subType": "即将上线",
+          "date": "2026-07-12",
+          "status": "upcoming",
+          "comingSoon": true,
+          "poster": null,
+          "description": "第三期对谈嘉宾筹划中，即将公布。票务通道同步开放。",
+          "registerUrl": "#"
+        },
+        {
+          "id": "t2",
+          "title": "Vol.2 · 对谈扎实一惹",
+          "titleEn": "Vol.2 · w/ Zhasi Yire",
+          "subType": "已完成",
+          "date": "2026-03-29",
+          "status": "past",
+          "poster": null,
+          "description": "与扎实一惹深聊藏区生活、写作与身份认同。",
+          "reviewUrl": "#"
+        },
+        {
+          "id": "t3",
+          "title": "Vol.1 · 对谈樊登",
+          "titleEn": "Vol.1 · w/ Fan Deng",
+          "subType": "已完成",
+          "date": "2025-11-15",
+          "status": "past",
+          "poster": null,
+          "description": "与樊登聊阅读的意义、读书APP的边界，以及什么是真正的理解一本书。",
+          "reviewUrl": "#"
+        }
+      ]
+    },
+    {
+      "id": "online-reading",
+      "name": "三小时线上阅读",
+      "nameEn": "3-Hour Reading Session",
+      "tagline": "同频共振，安静读书",
+      "taglineEn": "Read together, in silence",
+      "color": "#5C6E5E",
+      "textColor": "#ffffff",
+      "events": [
+        {
+          "id": "o1",
+          "title": "线上阅读 · 五月场",
+          "titleEn": "May Online Reading",
+          "subType": "线上",
+          "date": "2026-05-25",
+          "status": "upcoming",
+          "poster": null,
+          "description": "三小时，带上你正在读的任何书，视频连线，各读各的，互相陪伴。",
+          "registerUrl": "#"
+        },
+        {
+          "id": "o2",
+          "title": "线上阅读 · 四月场",
+          "titleEn": "April Online Reading",
+          "subType": "线上",
+          "date": "2026-04-20",
+          "status": "past",
+          "poster": null,
+          "description": "上期参与人数：14人。读完后可以聊聊读了什么，也可以直接退出。",
+          "reviewUrl": "#"
+        }
+      ]
+    },
+    {
+      "id": "writing",
+      "name": "雨山前写作营",
+      "nameEn": "Writing Camp",
+      "tagline": "写出你自己的故事",
+      "taglineEn": "Write your own story",
+      "color": "#4A3728",
+      "textColor": "#ffffff",
+      "comingSoon": true,
+      "events": [
+        {
+          "id": "w1",
+          "title": "新书试读会",
+          "titleEn": "New Manuscript Reading",
+          "subType": "即将上线",
+          "date": null,
+          "status": "coming_soon",
+          "poster": null,
+          "description": "邀请正在写作的朋友分享初稿片段，在安全的空间里获得真实反馈。"
+        },
+        {
+          "id": "w2",
+          "title": "征文活动",
+          "titleEn": "Writing Submission",
+          "subType": "即将上线",
+          "date": null,
+          "status": "coming_soon",
+          "poster": null,
+          "description": "主题征文，优秀作品在社群内部分享传阅，或登上我们的Newsletter。"
+        },
+        {
+          "id": "w3",
+          "title": "写作论坛",
+          "titleEn": "Writing Forum",
+          "subType": "即将上线",
+          "date": null,
+          "status": "coming_soon",
+          "poster": null,
+          "description": "邀请有出版经验或正在写作的嘉宾，聊聊写作这件事本身。"
+        }
+      ]
+    }
+  ],
+  "partners": [
+    {
+      "id": "pp1",
+      "partnerName": "西雅图华人文化中心",
+      "partnerNameEn": "Seattle Chinese Cultural Center",
+      "eventName": "春节文化节",
+      "date": "2026-06-20",
+      "description": "春节文化展览与表演，欢迎全家参与。",
+      "url": "#"
+    }
+  ],
+  "tickets": [
+    {
+      "id": "t-talk-v3",
+      "activityId": "talk-v3",
+      "title": "雨山前Talk · Vol.3",
+      "date": "2026-07-12",
+      "time": "14:00",
+      "location": "Seattle, WA（地点待公布）",
+      "generalPrice": null,
+      "generalUrl": "#",
+      "supporterPrice": null,
+      "supporterUrl": "#",
+      "supporterPerks": "含活动周边一份 + 支持一位成员免费参与",
+      "comingSoon": true
+    }
+  ]
+}

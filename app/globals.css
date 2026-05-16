@@ -1,26 +1,148 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@theme {
+  --color-paper:        #FAF8F5;
+  --color-surface:      #FFFFFF;
+  --color-ink:          #1C2220;
+  --color-muted:        #68736E;
+  --color-forest:       #2E463D;
+  --color-forest-light: #3a5a4e;
+  --color-sage:         #8FA499;
+  --color-border:       #E6E2DA;
+  --color-note:         #F2EDE4;
+
+  /* legacy aliases */
+  --color-moss:      #2E463D;
+  --color-moss-dark: #1e3028;
+  --color-mist:      #8FA499;
+  --color-off-white: #FAF8F5;
+  --color-error:     #C0392B;
+
+  --font-serif:   var(--font-noto-serif-sc), 'Songti SC', Georgia, serif;
+  --font-display: var(--font-playfair), 'Palatino Linotype', Georgia, serif;
+  --font-sans:    var(--font-noto-sans-sc), var(--font-inter), system-ui, sans-serif;
+  --font-label:   var(--font-inter), system-ui, sans-serif;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+html { scroll-behavior: smooth; }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: #FAF8F5;
+  color: #1C2220;
+  font-family: var(--font-serif);
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Editorial label ── */
+.label-sm {
+  font-family: var(--font-label);
+  font-size: 0.625rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+
+/* ── Pull quote ── */
+.pull-quote {
+  font-family: var(--font-display);
+  font-style: italic;
+  line-height: 1.6;
+  color: var(--color-ink);
+}
+
+/* ── Global interactive feedback ── */
+button, a[href], [role="button"] {
+  cursor: pointer;
+}
+
+/* ── Filled button (forest green) ── */
+.btn-filled {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 12px 28px;
+  background: var(--color-forest);
+  color: #fff;
+  font-family: var(--font-label);
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+  transition: background 0.5s ease-in-out, transform 0.5s ease-in-out;
+}
+.btn-filled:hover  { background: var(--color-forest-light); transform: translateY(-1px); }
+.btn-filled:active { transform: scale(0.97) translateY(1px); }
+
+/* ── Outline button with rain-fill hover ── */
+.btn-outline {
+  position: relative;
+  overflow: hidden;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 11px 26px;
+  border: 1px solid currentColor;
+  border-radius: 4px;
+  font-family: var(--font-label);
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  transition: color 0.5s ease-in-out, transform 0.5s ease-in-out;
+  z-index: 0;
+}
+.btn-outline::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--color-forest);
+  transform: translateY(101%);
+  transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: -1;
+}
+.btn-outline:hover::after { transform: translateY(0); }
+.btn-outline:hover  { color: white; border-color: var(--color-forest); }
+.btn-outline:active { transform: scale(0.97) translateY(1px); }
+
+/* ── Accordion expand/collapse ── */
+.accordion-content {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.accordion-content.open {
+  max-height: 600px;
+}
+
+/* ── Event row hover dimming ── */
+.event-rows:hover .event-row {
+  opacity: 0.45;
+  filter: grayscale(20%);
+  transition: opacity 0.3s, filter 0.3s;
+}
+.event-rows:hover .event-row:hover {
+  opacity: 1;
+  filter: grayscale(0%);
+}
+.event-row {
+  transition: opacity 0.3s, filter 0.3s;
+}
+
+/* ── Merch hover list ── */
+.merch-list:hover .merch-item {
+  color: var(--color-muted);
+  transition: color 0.25s;
+}
+.merch-list:hover .merch-item:hover {
+  color: var(--color-forest);
+}
+.merch-item {
+  transition: color 0.25s;
 }
