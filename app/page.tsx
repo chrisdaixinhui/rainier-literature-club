@@ -47,7 +47,7 @@ export default function AboutPage() {
       <HeroRain />
 
       {/* ── WHO WE ARE ── centered layout */}
-      <section id="about" style={{ padding: '96px 24px', textAlign: 'center' }}>
+      <section id="about" className="px-4 md:px-6" style={{ paddingTop: '96px', paddingBottom: '96px', textAlign: 'center' }}>
         <div style={{ maxWidth: '680px', margin: '0 auto' }}>
           <p className="label-sm" style={{ marginBottom: '20px' }}>Who We Are · 我们是谁</p>
           <h2
@@ -83,10 +83,10 @@ export default function AboutPage() {
       </section>
 
       {/* ── DIVIDER ── */}
-      <div style={{ borderTop: '1px solid #E6E2DA', margin: '0 24px' }} />
+      <div className="mx-4 md:mx-6" style={{ borderTop: '1px solid #E6E2DA' }} />
 
       {/* ── PULL QUOTE ── */}
-      <section style={{ padding: '80px 24px', textAlign: 'center', background: '#F2EDE4' }}>
+      <section className="px-4 md:px-6" style={{ paddingTop: '80px', paddingBottom: '80px', textAlign: 'center', background: '#F2EDE4' }}>
         <div style={{ maxWidth: '620px', margin: '0 auto' }}>
           <p
             className="pull-quote"
@@ -99,7 +99,7 @@ export default function AboutPage() {
       </section>
 
       {/* ── WHAT WE OFFER ── centered, typography-driven */}
-      <section style={{ padding: '96px 24px', textAlign: 'center' }}>
+      <section className="px-4 md:px-6" style={{ paddingTop: '96px', paddingBottom: '96px', textAlign: 'center' }}>
         <div style={{ maxWidth: '800px', margin: '0 auto' }}>
           <p className="label-sm" style={{ marginBottom: '20px' }}>What We Offer · 我们提供什么</p>
           <h2
@@ -160,7 +160,7 @@ export default function AboutPage() {
       </section>
 
       {/* ── PHOTO WALL ── */}
-      <section style={{ padding: '0 24px 80px', maxWidth: '900px', margin: '0 auto' }}>
+      <section className="px-4 md:px-6" style={{ paddingBottom: '80px', maxWidth: '900px', margin: '0 auto' }}>
         <p className="label-sm" style={{ textAlign: 'center', marginBottom: '40px' }}>往期风采集 · Event Gallery</p>
         <PhotoWall />
       </section>
@@ -169,4 +169,6 @@ export default function AboutPage() {
       <SentenceOfDay />
     </>
   )
+}
+
 }
