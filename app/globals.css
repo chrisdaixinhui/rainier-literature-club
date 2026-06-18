@@ -18,13 +18,13 @@
   --color-off-white: #FAF8F5;
   --color-error:     #C0392B;
 
-  --font-serif:   var(--font-noto-serif-sc), 'Songti SC', Georgia, serif;
-  --font-display: var(--font-playfair), 'Palatino Linotype', Georgia, serif;
-  --font-sans:    var(--font-noto-sans-sc), var(--font-inter), system-ui, sans-serif;
-  --font-label:   var(--font-inter), system-ui, sans-serif;
+  --font-serif:   var(--font-noto-serif-sc), 'Songti SC', 'STSong', 'SimSun', Georgia, serif;
+  --font-display: var(--font-playfair), 'Palatino Linotype', Georgia, 'Times New Roman', serif;
+  --font-sans:    var(--font-noto-sans-sc), var(--font-inter), -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  --font-label:   var(--font-inter), -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
 }
 
-html { scroll-behavior: smooth; }
+html { scroll-behavior: smooth; overflow-x: hidden; max-width: 100vw; }
 
 *, *::before, *::after {
   box-sizing: border-box;
@@ -37,6 +37,7 @@ body {
   color: #1C2220;
   font-family: var(--font-serif);
   overflow-x: hidden;
+  max-width: 100vw;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -144,5 +145,8 @@ button, a[href], [role="button"] {
   color: var(--color-forest);
 }
 .merch-item {
+  transition: color 0.25s;
+}
+
   transition: color 0.25s;
 }
