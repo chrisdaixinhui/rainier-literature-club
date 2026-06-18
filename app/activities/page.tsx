@@ -38,10 +38,10 @@ function UpcomingBanner({ ev }: { ev: typeof activitiesData.upcoming[0] }) {
       <div style={{ position: 'relative', width: '100%', aspectRatio: '16/7', minHeight: '280px' }}>
         <ImgPlaceholder label="活动海报 · 1600 × 700" style={{ position: 'absolute', inset: 0 }} />
         {/* Overlay: event title on poster */}
-        <div style={{
+        <div className="px-4 md:px-9" style={{
           position: 'absolute', inset: 0,
           background: 'linear-gradient(to top, rgba(20,30,26,0.75) 0%, transparent 50%)',
-          display: 'flex', alignItems: 'flex-end', padding: '32px 36px',
+          display: 'flex', alignItems: 'flex-end', paddingTop: '32px', paddingBottom: '32px',
         }}>
           <div>
             {ev.comingSoon && (
@@ -71,9 +71,10 @@ function UpcomingBanner({ ev }: { ev: typeof activitiesData.upcoming[0] }) {
       {/* Expand toggle bar */}
       <button
         onClick={() => setOpen(!open)}
+        className="px-4 md:px-9"
         style={{
           width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          padding: '16px 36px', background: '#FAF8F5', cursor: 'pointer',
+          paddingTop: '16px', paddingBottom: '16px', background: '#FAF8F5', cursor: 'pointer',
           borderTop: '1px solid #E6E2DA', transition: 'background 0.2s',
         }}
         onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = '#F2EDE4' }}
@@ -92,8 +93,8 @@ function UpcomingBanner({ ev }: { ev: typeof activitiesData.upcoming[0] }) {
 
       {/* Accordion detail panel */}
       <div className={`accordion-content ${open ? 'open' : ''}`}>
-        <div style={{ padding: '32px 36px 36px', borderTop: '1px solid #E6E2DA' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px 48px', maxWidth: '700px' }}>
+        <div className="px-4 md:px-9" style={{ paddingTop: '32px', paddingBottom: '36px', borderTop: '1px solid #E6E2DA' }}>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 md:gap-x-12" style={{ maxWidth: '700px' }}>
             <div>
               <p style={{ fontFamily: 'var(--font-label)', fontSize: '10px', letterSpacing: '0.16em', color: '#8FA499', marginBottom: '6px' }}>DATE · 日期</p>
               <p style={{ fontFamily: 'var(--font-sans)', fontSize: '14px', color: '#1C2220' }}>{ev.date} {ev.time}</p>
@@ -132,7 +133,7 @@ function EventRow({ ev, catColor }: { ev: any; catColor: string }) {
         onClick={() => setOpen(!open)}
       >
         <ImgPlaceholder label={`海报 · ${ev.title}`} style={{ aspectRatio: '4/3', minHeight: '160px' }} />
-        <div style={{ padding: '24px 32px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+        <div className="px-4 md:px-8 py-6 flex flex-col justify-center">
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
             <span style={{
               fontFamily: 'var(--font-label)', fontSize: '10px', letterSpacing: '0.12em',
@@ -173,7 +174,7 @@ function EventRow({ ev, catColor }: { ev: any; catColor: string }) {
 
       {/* Accordion detail */}
       <div className={`accordion-content ${open ? 'open' : ''}`}>
-        <div style={{ padding: '20px 32px 28px', background: '#F9F7F4', borderTop: '1px solid #E6E2DA' }}>
+        <div className="px-4 md:px-8 py-5" style={{ background: '#F9F7F4', borderTop: '1px solid #E6E2DA' }}>
           <p style={{ fontFamily: 'var(--font-sans)', fontSize: '14px', lineHeight: 1.85, color: 'rgba(28,34,32,0.68)', maxWidth: '60ch', marginBottom: '20px' }}>
             {ev.description}
           </p>
@@ -246,7 +247,7 @@ export default function ActivitiesPage() {
     <div style={{ minHeight: '100vh', background: '#FAF8F5' }}>
 
       {/* Page header — centered */}
-      <div style={{ paddingTop: '120px', paddingBottom: '48px', textAlign: 'center', borderBottom: '1px solid #E6E2DA' }}>
+      <div className="px-4 md:px-6" style={{ paddingTop: '120px', paddingBottom: '48px', textAlign: 'center', borderBottom: '1px solid #E6E2DA' }}>
         <p className="label-sm" style={{ marginBottom: '16px' }}>Activities · 活动</p>
         <h1 style={{
           fontFamily: 'var(--font-serif)', fontSize: 'clamp(32px, 5vw, 52px)',
@@ -268,8 +269,9 @@ export default function ActivitiesPage() {
             <button
               key={t.key}
               onClick={() => { setTab(t.key); setSelectedCat(null) }}
+              className="px-3 md:px-7"
               style={{
-                padding: '16px 28px',
+                paddingTop: '16px', paddingBottom: '16px',
                 fontFamily: 'var(--font-sans)', fontSize: '13px',
                 border: 'none',
                 borderBottom: tab === t.key ? '2px solid #2E463D' : '2px solid transparent',
@@ -281,13 +283,13 @@ export default function ActivitiesPage() {
               }}
             >
               {t.label}
-              <span style={{ marginLeft: '6px', fontSize: '10px', letterSpacing: '0.1em', opacity: 0.45 }}>{t.en}</span>
+              <span className="hidden sm:inline" style={{ marginLeft: '6px', fontSize: '10px', letterSpacing: '0.1em', opacity: 0.45 }}>{t.en}</span>
             </button>
           ))}
         </div>
       </div>
 
-      <div style={{ maxWidth: '900px', margin: '0 auto', padding: '56px 24px' }}>
+      <div className="px-4 md:px-6" style={{ maxWidth: '900px', margin: '0 auto', paddingTop: '56px', paddingBottom: '56px' }}>
 
         {/* ── UPCOMING TAB ── */}
         {tab === 'upcoming' && (
