@@ -28,7 +28,7 @@ function MerchSection() {
   const activeMerch = hoveredId ? MERCH.find(m => m.id === hoveredId) : null
 
   return (
-    <section style={{ padding: '80px 24px', maxWidth: '860px', margin: '0 auto' }}>
+    <section className="px-4 md:px-6" style={{ paddingTop: '80px', paddingBottom: '80px', maxWidth: '860px', margin: '0 auto' }}>
       <p className="label-sm" style={{ textAlign: 'center', marginBottom: '16px' }}>Merchandise · 周边商品</p>
       <h2 style={{
         fontFamily: 'var(--font-serif)', fontSize: 'clamp(24px, 4vw, 38px)',
@@ -40,7 +40,7 @@ function MerchSection() {
         即将上线 · Coming Soon
       </p>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0 64px', alignItems: 'start' }}>
+      <div className="grid grid-cols-1 md:grid-cols-2 md:gap-x-16 items-start">
 
         {/* Left: text list */}
         <div className="merch-list" style={{ paddingTop: '16px' }}>
@@ -98,8 +98,8 @@ function MerchSection() {
           </p>
         </div>
 
-        {/* Right: floating image */}
-        <div style={{ position: 'sticky', top: '100px', aspectRatio: '1/1' }}>
+        {/* Right: floating image (desktop only — hover interaction) */}
+        <div className="hidden md:block" style={{ position: 'sticky', top: '100px', aspectRatio: '1/1' }}>
           {MERCH.map(m => (
             <div
               key={m.id}
@@ -134,7 +134,7 @@ function MerchSection() {
 
 function TicketsSection() {
   return (
-    <section style={{ padding: '80px 24px', maxWidth: '860px', margin: '0 auto', borderTop: '1px solid #E6E2DA' }}>
+    <section className="px-4 md:px-6" style={{ paddingTop: '80px', paddingBottom: '80px', maxWidth: '860px', margin: '0 auto', borderTop: '1px solid #E6E2DA' }}>
       <p className="label-sm" style={{ textAlign: 'center', marginBottom: '16px' }}>Tickets · 活动票务</p>
       <h2 style={{
         fontFamily: 'var(--font-serif)', fontSize: 'clamp(24px, 4vw, 38px)',
@@ -171,9 +171,9 @@ function TicketsSection() {
               </div>
 
               {/* Two-tier pricing */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr' }}>
+              <div className="grid grid-cols-1 md:grid-cols-2">
                 {/* General */}
-                <div style={{ padding: '28px 32px', borderRight: '1px solid #E6E2DA' }}>
+                <div className="px-8 py-7 border-b border-[#E6E2DA] md:border-b-0 md:border-r md:border-[#E6E2DA]">
                   <p style={{ fontFamily: 'var(--font-serif)', fontSize: '16px', fontWeight: 700, color: '#1C2220', marginBottom: '4px' }}>普通票</p>
                   <p style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: '12px', color: '#8FA499', marginBottom: '20px' }}>General Admission</p>
                   <p style={{ fontFamily: 'var(--font-display)', fontSize: '28px', fontWeight: 700, color: '#1C2220', marginBottom: '20px' }}>
@@ -185,7 +185,7 @@ function TicketsSection() {
                 </div>
 
                 {/* Supporter */}
-                <div style={{ padding: '28px 32px', background: '#2E463D08' }}>
+                <div className="px-8 py-7" style={{ background: '#2E463D08' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
                     <p style={{ fontFamily: 'var(--font-serif)', fontSize: '16px', fontWeight: 700, color: '#1C2220' }}>支持者票</p>
                     <span style={{ fontFamily: 'var(--font-label)', fontSize: '9px', color: '#2E463D', background: '#2E463D18', padding: '2px 7px', letterSpacing: '0.1em' }}>推荐</span>
@@ -215,7 +215,7 @@ export default function SupportPage() {
     <div style={{ minHeight: '100vh', background: '#FAF8F5' }}>
 
       {/* Header */}
-      <div style={{ paddingTop: '120px', paddingBottom: '48px', textAlign: 'center', borderBottom: '1px solid #E6E2DA', maxWidth: '680px', margin: '0 auto' }}>
+      <div className="px-4 md:px-6" style={{ paddingTop: '120px', paddingBottom: '48px', textAlign: 'center', borderBottom: '1px solid #E6E2DA', maxWidth: '680px', margin: '0 auto' }}>
         <p className="label-sm" style={{ marginBottom: '16px' }}>Support Us · 支持我们</p>
         <h1 style={{
           fontFamily: 'var(--font-serif)', fontSize: 'clamp(28px, 4vw, 46px)',
