@@ -230,7 +230,6 @@ export default function SupportPage() {
 
       <MerchSection />
       <TicketsSection />
-      <DonateSection />
     </div>
   )
 }
