@@ -1,6 +1,7 @@
 import HeroRain from '@/components/HeroRain'
 import SentenceOfDay from '@/components/SentenceOfDay'
 import PhotoWall from '@/components/PhotoWall'
+import ImageCarousel from '@/components/ImageCarousel'
 
 const OFFERS = [
   {
@@ -22,24 +23,6 @@ const OFFERS = [
     desc: '专为华人打造的知识共享平台，以书会友，与你有相似气味的人相遇及重逢。',
   },
 ]
-
-function ImgPlaceholder({ label, aspect }: { label: string; aspect?: string }) {
-  return (
-    <div
-      className={`w-full ${aspect ?? 'aspect-[4/3]'} flex flex-col items-center justify-center gap-2`}
-      style={{ background: '#E8E3DA', border: '1px solid #E6E2DA' }}
-    >
-      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#8FA499" strokeWidth="1">
-        <rect x="3" y="3" width="18" height="18" rx="1"/>
-        <circle cx="8.5" cy="8.5" r="1.5"/>
-        <polyline points="21 15 16 10 5 21"/>
-      </svg>
-      <span style={{ fontFamily: 'var(--font-label)', fontSize: '10px', color: '#8FA499', letterSpacing: '0.1em' }}>
-        {label}
-      </span>
-    </div>
-  )
-}
 
 export default function AboutPage() {
   return (
@@ -78,7 +61,7 @@ export default function AboutPage() {
 
         {/* Photo — centered full-width banner */}
         <div style={{ maxWidth: '900px', margin: '64px auto 0' }}>
-          <ImgPlaceholder label="社群合影 · 900 × 500" aspect="aspect-[16/9] md:aspect-[21/9]" />
+          <ImageCarousel />
         </div>
       </section>
 
