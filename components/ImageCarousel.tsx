@@ -3,10 +3,10 @@
 import { useEffect, useRef, useState } from 'react'
 
 const IMAGES = [
-  'https://drive.google.com/uc?export=view&id=181MAZVmoPpX6C8S7ZppWNL9PDl7YKbdQ',
-  'https://drive.google.com/uc?export=view&id=1z4UhsvNuTTSLGTcWaqW-N0Y6vkqzkqW4',
-  'https://drive.google.com/uc?export=view&id=1_obmoXKMf0LpRsJLJpmjIVNj8kOpZzIc',
-  'https://drive.google.com/uc?export=view&id=1-zSodW2LoL_2qnJKTWzNKZgq6CFPWljg',
+  'https://res.cloudinary.com/dpprzfwjf/image/upload/v1781833719/%E5%85%B3%E4%BA%8E%E6%88%91%E4%BB%AC/DSC_0610_houpbq.jpg',
+  'https://res.cloudinary.com/dpprzfwjf/image/upload/v1781833717/%E5%85%B3%E4%BA%8E%E6%88%91%E4%BB%AC/DSC_0856_cnk2ay.jpg',
+  'https://res.cloudinary.com/dpprzfwjf/image/upload/v1781833711/%E5%85%B3%E4%BA%8E%E6%88%91%E4%BB%AC/DSC_0453_rsdwg8.jpg',
+  'https://res.cloudinary.com/dpprzfwjf/image/upload/v1781833710/%E5%85%B3%E4%BA%8E%E6%88%91%E4%BB%AC/DSC_0792_watermarked_ur6aqr.jpg',
 ]
 
 const INTERVAL = 4000
