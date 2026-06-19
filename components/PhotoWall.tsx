@@ -1,14 +1,14 @@
 'use client'
 
 const EVENTS = [
-  { id: 0, label: '再建社群 · Vol.1', sub: 'Jan 2026', img: 'https://drive.google.com/uc?export=view&id=1-awUKWSY0wvrGRqxFgHImRdKumI70oBI' },
-  { id: 1, label: '红楼梦共读', sub: 'Apr 2026', img: 'https://drive.google.com/uc?export=view&id=1CFesWhTtt2YQAyDR_Tl934S3IHvZKEPC' },
-  { id: 2, label: '乱讲PPT之夜', sub: 'Mar 2026', img: 'https://drive.google.com/uc?export=view&id=1zBPKK8OTQhgngPKQsK5P924zu7Ktc-W5' },
-  { id: 3, label: '冷门学科分享大会', sub: 'Feb 2026', img: 'https://drive.google.com/uc?export=view&id=1BRpH11ZqSNnDoMo0RVCmd0myTetOliC7' },
-  { id: 4, label: '存在主义咖啡馆', sub: 'Mar 2026', img: 'https://drive.google.com/uc?export=view&id=15Vi0xgxOprVO7Dp8LV0o7MsTLdFkCIWO' },
-  { id: 5, label: '扎十一惹对谈', sub: 'Apr 2026', img: 'https://drive.google.com/uc?export=view&id=1vfAKTJ-pJ0fKOYuPyqdlKhz8JK65cJV8' },
-  { id: 6, label: '三小时Zoom共读·白先勇', sub: 'May 2026', img: 'https://drive.google.com/uc?export=view&id=1nD3XXvWgoBTVTNu_o63jtfPFIifiV3PB' },
-  { id: 7, label: '马克思主题共读', sub: 'May 2026', img: 'https://drive.google.com/uc?export=view&id=1WL4f3KlwvhqUqpZ4q2iIkvol0W5aXRHf' },
+  { id: 0, label: '再建社群 · Vol.1', sub: 'Jan 2026', img: 'https://res.cloudinary.com/dpprzfwjf/image/upload/v1781833693/%E5%85%B3%E4%BA%8E%E6%88%91%E4%BB%AC/recommunity%E6%B5%B7%E6%8A%A5_a4kbsc.jpg' },
+  { id: 1, label: '红楼梦共读', sub: 'Apr 2026', img: 'https://res.cloudinary.com/dpprzfwjf/image/upload/v1781833714/%E5%85%B3%E4%BA%8E%E6%88%91%E4%BB%AC/%E9%9B%A8%E5%B1%B1%E5%89%8D%E7%BA%A2%E6%A5%BC%E6%A2%A6_%E7%BB%BF_1_dhrm2g.png' },
+  { id: 2, label: '乱讲PPT之夜', sub: 'Mar 2026', img: 'https://res.cloudinary.com/dpprzfwjf/image/upload/v1781833705/%E5%85%B3%E4%BA%8E%E6%88%91%E4%BB%AC/%E9%9B%A8%E5%B1%B1%E5%89%8D-%E5%A5%87%E6%80%AA%E7%9A%84%E7%9F%A5%E8%AF%861_w99jma.png' },
+  { id: 3, label: '冷门学科分享大会', sub: 'Feb 2026', img: 'https://res.cloudinary.com/dpprzfwjf/image/upload/v1781833687/%E5%85%B3%E4%BA%8E%E6%88%91%E4%BB%AC/%E5%86%B7%E9%97%A8%E5%AD%A6%E7%A7%91%E5%88%86%E4%BA%AB%E5%A4%A7%E4%BC%9A_revised_l3lr61.jpg' },
+  { id: 4, label: '存在主义咖啡馆', sub: 'Mar 2026', img: 'https://res.cloudinary.com/dpprzfwjf/image/upload/v1781833682/%E5%85%B3%E4%BA%8E%E6%88%91%E4%BB%AC/%E5%AD%98%E5%9C%A8%E4%B8%BB%E4%B9%89%E5%92%96%E5%95%A1%E9%A6%86_dt35nm.jpg' },
+  { id: 5, label: '扎十一惹对谈', sub: 'Apr 2026', img: 'https://res.cloudinary.com/dpprzfwjf/image/upload/v1781833677/%E5%85%B3%E4%BA%8E%E6%88%91%E4%BB%AC/164891774916865_.pic_hd_k3z4sd.jpg' },
+  { id: 6, label: '三小时Zoom共读·白先勇', sub: 'May 2026', img: 'https://res.cloudinary.com/dpprzfwjf/image/upload/v1781833930/ZOOM%E5%85%B1%E8%AF%BB02-%E7%99%BD%E5%85%88%E5%8B%87%E7%89%88%E6%9C%AC2_piqvbb.jpg' },
+  { id: 7, label: '马克思主题共读', sub: 'May 2026', img: 'https://res.cloudinary.com/dpprzfwjf/image/upload/v1781833675/%E5%85%B3%E4%BA%8E%E6%88%91%E4%BB%AC/WechatIMG17903_nmcrrm.jpg' },
 ]
 
 const ROTATIONS = [-2.5, 1.8, -1.2, 2.8, -2, 1.3, -2.2, 1.6]
