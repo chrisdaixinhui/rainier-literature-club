@@ -65,15 +65,12 @@ function Paragraphs({
   )
 }
 
-// ── Upcoming event: poster + text side-by-side ──
+// ── Upcoming event: poster on top, text below ──
 function UpcomingBanner({ ev }: { ev: ActivityRecord }) {
   return (
-    <div
-      className="grid grid-cols-1 md:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]"
-      style={{ border: '1px solid #E6E2DA', overflow: 'hidden' }}
-    >
-      {/* Poster */}
-      <div style={{ position: 'relative', width: '100%', aspectRatio: '3/4' }}>
+    <div style={{ border: '1px solid #E6E2DA', overflow: 'hidden' }}>
+      {/* Poster 1250 × 1667 */}
+      <div style={{ position: 'relative', width: '100%', maxWidth: '480px', margin: '0 auto', aspectRatio: '1250 / 1667' }}>
         {ev.poster ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
@@ -82,14 +79,14 @@ function UpcomingBanner({ ev }: { ev: ActivityRecord }) {
             style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
           />
         ) : (
-          <ImgPlaceholder label="活动海报 · 3:4" style={{ position: 'absolute', inset: 0 }} />
+          <ImgPlaceholder label="活动海报 · 1250 × 1667" style={{ position: 'absolute', inset: 0 }} />
         )}
       </div>
 
-      {/* Text panel with safe padding */}
+      {/* Text below */}
       <div
-        className="px-6 py-8 md:px-12 md:py-12"
-        style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: '22px' }}
+        className="px-6 py-8 md:px-12 md:py-10"
+        style={{ borderTop: '1px solid #E6E2DA', display: 'flex', flexDirection: 'column', gap: '20px' }}
       >
         {ev.comingSoon && (
           <span
@@ -120,7 +117,7 @@ function UpcomingBanner({ ev }: { ev: ActivityRecord }) {
 
         <div
           className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-4"
-          style={{ padding: '20px 24px', border: '1px solid #E6E2DA', background: '#F9F7F4' }}
+          style={{ padding: '18px 22px', border: '1px solid #E6E2DA', background: '#F9F7F4' }}
         >
           <div>
             <p style={{ fontFamily: 'var(--font-label)', fontSize: '10px', letterSpacing: '0.16em', color: '#8FA499', marginBottom: '6px' }}>DATE · 日期</p>
@@ -163,7 +160,7 @@ function EventRow({ ev, catColor }: { ev: ActivityRecord; catColor: string }) {
         onClick={() => setOpen(!open)}
       >
         {ev.poster ? (
-          <div style={{ position: 'relative', aspectRatio: '3/4', minHeight: '160px', overflow: 'hidden' }}>
+          <div style={{ position: 'relative', aspectRatio: '1250 / 1667', minHeight: '160px', overflow: 'hidden' }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={ev.poster}
@@ -172,7 +169,7 @@ function EventRow({ ev, catColor }: { ev: ActivityRecord; catColor: string }) {
             />
           </div>
         ) : (
-          <ImgPlaceholder label={`海报 · ${ev.title}`} style={{ aspectRatio: '3/4', minHeight: '160px' }} />
+          <ImgPlaceholder label={`海报 · ${ev.title}`} style={{ aspectRatio: '1250 / 1667', minHeight: '160px' }} />
         )}
         <div className="px-4 md:px-8 py-6 flex flex-col justify-center">
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
