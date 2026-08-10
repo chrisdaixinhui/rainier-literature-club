@@ -1,4 +1,5 @@
 import FooterClient from './FooterClient'
+import FooterYear from './FooterYear'
 
 export default function Footer() {
   return (
@@ -103,7 +104,7 @@ export default function Footer() {
         {/* ── Copyright ── */}
         <div style={{ borderTop: '1px solid #E6E2DA', padding: '20px 0', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
           <p style={{ fontFamily: 'var(--font-label)', fontSize: '11px', color: 'rgba(104,115,110,0.5)' }}>
-            © {new Date().getFullYear()} 雨山前 Rainier Literature Society
+            © <FooterYear /> 雨山前 Rainier Literature Society
           </p>
           <p style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: '11px', color: 'rgba(104,115,110,0.4)' }}>
             Seattle, WA · 雨落苍林

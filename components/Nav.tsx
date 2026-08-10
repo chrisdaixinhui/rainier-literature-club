@@ -16,7 +16,10 @@ export default function Nav() {
   const { openModal } = useModal()
   const pathname = usePathname()
 
-  useEffect(() => setMenuOpen(false), [pathname])
+  useEffect(() => {
+    const timer = setTimeout(() => setMenuOpen(false), 0)
+    return () => clearTimeout(timer)
+  }, [pathname])
 
   const isActive = (href: string) =>
     href === '/' || href === '/#about'

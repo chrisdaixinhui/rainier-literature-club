@@ -1,0 +1,168 @@
+import { cacheLife, cacheTag } from 'next/cache'
+import { fetchActivitiesFromNotion } from './notion'
+import type {
+  ActivitiesPayload,
+  ActivityRecord,
+  ActivityStatus,
+  CategoryRecord,
+  PartnerRecord,
+  TicketRecord,
+} from './types'
+import staticData from '../data/activities.json'
+
+/**
+ * Single entry point for activity content.
+ *
+ * Notion is the source of truth when configured; the static JSON files are the
+ * automatic fallback when Notion is unavailable. The result is cached with a
+ * 10-minute revalidation window and tagged for on-demand refresh.
+ */
+export async function getActivitiesPayload(): Promise<ActivitiesPayload> {
+  'use cache'
+  cacheTag('activities')
+  cacheLife({
+    stale: 60,
+    revalidate: 600,
+    expire: 3600,
+  })
+
+  const notionData = await fetchActivitiesFromNotion()
+  if (notionData) return notionData
+  return normalizeStaticData(staticData as unknown as StaticDataShape)
+}
+
+interface StaticActivityInput {
+  id?: string
+  title?: string
+  titleEn?: string | null
+  subType?: string | null
+  date?: string | null
+  time?: string | null
+  location?: string | null
+  locationDetail?: string | null
+  description?: string | null
+  descriptionEn?: string | null
+  poster?: string | null
+  registerUrl?: string | null
+  reviewUrl?: string | null
+  generalPrice?: number | null
+  supporterPrice?: number | null
+  supporterPerks?: string | null
+  comingSoon?: boolean
+  featured?: boolean
+  status?: ActivityStatus
+}
+
+interface StaticCategoryInput {
+  id?: string
+  name?: string
+  nameEn?: string
+  tagline?: string
+  taglineEn?: string
+  color?: string
+  textColor?: string
+  comingSoon?: boolean
+  events?: StaticActivityInput[]
+}
+
+interface StaticPartnerInput {
+  id?: string
+  partnerName?: string
+  partnerNameEn?: string | null
+  eventName?: string
+  date?: string | null
+  description?: string | null
+  url?: string | null
+}
+
+interface StaticTicketInput {
+  id?: string
+  activityId?: string | null
+  title?: string
+  date?: string | null
+  time?: string | null
+  location?: string | null
+  generalPrice?: number | null
+  generalUrl?: string | null
+  supporterPrice?: number | null
+  supporterUrl?: string | null
+  supporterPerks?: string | null
+  comingSoon?: boolean
+}
+
+interface StaticDataShape {
+  upcoming: StaticActivityInput[]
+  categories: StaticCategoryInput[]
+  partners: StaticPartnerInput[]
+  tickets: StaticTicketInput[]
+}
+
+function toActivity(
+  ev: StaticActivityInput,
+  fallbackStatus: ActivityStatus = 'upcoming',
+): ActivityRecord {
+  return {
+    id: String(ev.id ?? ''),
+    title: String(ev.title ?? ''),
+    titleEn: ev.titleEn ?? null,
+    subType: ev.subType ?? null,
+    date: ev.date ?? null,
+    time: ev.time ?? null,
+    location: ev.location ?? null,
+    locationDetail: ev.locationDetail ?? null,
+    description: ev.description ?? null,
+    descriptionEn: ev.descriptionEn ?? null,
+    poster: ev.poster ?? null,
+    registerUrl: ev.registerUrl ?? null,
+    reviewUrl: ev.reviewUrl ?? null,
+    comingSoon: Boolean(ev.comingSoon),
+    featured: Boolean(ev.featured),
+    status: ev.status ?? (ev.comingSoon ? 'coming_soon' : fallbackStatus),
+  }
+}
+
+function normalizeStaticData(data: StaticDataShape): ActivitiesPayload {
+  const categories: CategoryRecord[] = (data.categories ?? []).map((cat) => ({
+    id: String(cat.id ?? ''),
+    name: String(cat.name ?? ''),
+    nameEn: String(cat.nameEn ?? ''),
+    tagline: String(cat.tagline ?? ''),
+    taglineEn: String(cat.taglineEn ?? ''),
+    color: String(cat.color ?? '#2E463D'),
+    textColor: String(cat.textColor ?? '#ffffff'),
+    comingSoon: Boolean(cat.comingSoon),
+    events: (cat.events ?? []).map((ev) => toActivity(ev)),
+  }))
+
+  const partners: PartnerRecord[] = (data.partners ?? []).map((p) => ({
+    id: String(p.id ?? ''),
+    partnerName: String(p.partnerName ?? ''),
+    partnerNameEn: p.partnerNameEn ?? null,
+    eventName: String(p.eventName ?? ''),
+    date: p.date ?? null,
+    description: p.description ?? null,
+    url: p.url ?? null,
+  }))
+
+  const tickets: TicketRecord[] = (data.tickets ?? []).map((t) => ({
+    id: String(t.id ?? ''),
+    activityId: t.activityId ?? null,
+    title: String(t.title ?? ''),
+    date: t.date ?? null,
+    time: t.time ?? null,
+    location: t.location ?? null,
+    generalPrice: t.generalPrice ?? null,
+    generalUrl: t.generalUrl ?? null,
+    supporterPrice: t.supporterPrice ?? null,
+    supporterUrl: t.supporterUrl ?? null,
+    supporterPerks: t.supporterPerks ?? null,
+    comingSoon: Boolean(t.comingSoon),
+  }))
+
+  return {
+    upcoming: (data.upcoming ?? []).map((ev) => toActivity(ev)),
+    categories,
+    partners,
+    tickets,
+  }
+}

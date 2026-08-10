@@ -1,13 +1,15 @@
+import { connection } from 'next/server'
 import sentences from '@/data/sentences.json'
 
-function getDailySentence() {
+async function getDailySentence() {
+  await connection()
   const d = new Date()
   const seed = d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate()
   return sentences[seed % sentences.length]
 }
 
-export default function SentenceOfDay() {
-  const s = getDailySentence()
+export default async function SentenceOfDay() {
+  const s = await getDailySentence()
   return (
     <section
       style={{

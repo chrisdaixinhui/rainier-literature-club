@@ -1,3 +1,4 @@
+import { Suspense } from 'react'
 import HeroRain from '@/components/HeroRain'
 import SentenceOfDay from '@/components/SentenceOfDay'
 import PhotoWall from '@/components/PhotoWall'
@@ -75,7 +76,7 @@ export default function AboutPage() {
             className="pull-quote"
             style={{ fontSize: 'clamp(20px, 3vw, 32px)', color: 'rgba(28,34,32,0.7)' }}
           >
-            "大千世界里的芸芸众生，<br />都是自己故事里的主角。"
+            “大千世界里的芸芸众生，<br />都是自己故事里的主角。”
           </p>
           <p className="label-sm" style={{ marginTop: '28px' }}>雨山前书会 · Seattle</p>
         </div>
@@ -149,7 +150,9 @@ export default function AboutPage() {
       </section>
 
       {/* ── SENTENCE OF THE DAY ── */}
-      <SentenceOfDay />
+      <Suspense fallback={null}>
+        <SentenceOfDay />
+      </Suspense>
     </>
   )
 }
