@@ -35,7 +35,7 @@ function UpcomingBanner({ ev }: { ev: ActivityRecord }) {
   return (
     <div style={{ border: '1px solid #E6E2DA', overflow: 'hidden' }}>
       {/* Full-width poster */}
-      <div style={{ position: 'relative', width: '100%', aspectRatio: '16/7', minHeight: '280px' }}>
+      <div style={{ position: 'relative', width: '100%', maxWidth: '480px', margin: '0 auto', aspectRatio: '3/4' }}>
         {ev.poster ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
@@ -44,7 +44,7 @@ function UpcomingBanner({ ev }: { ev: ActivityRecord }) {
             style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
           />
         ) : (
-          <ImgPlaceholder label="活动海报 · 1600 × 700" style={{ position: 'absolute', inset: 0 }} />
+          <ImgPlaceholder label="活动海报 · 3:4" style={{ position: 'absolute', inset: 0 }} />
         )}
         {/* Overlay: event title on poster */}
         <div className="px-4 md:px-9" style={{
@@ -142,7 +142,7 @@ function EventRow({ ev, catColor }: { ev: ActivityRecord; catColor: string }) {
         onClick={() => setOpen(!open)}
       >
         {ev.poster ? (
-          <div style={{ position: 'relative', aspectRatio: '4/3', minHeight: '160px', overflow: 'hidden' }}>
+          <div style={{ position: 'relative', aspectRatio: '3/4', minHeight: '160px', overflow: 'hidden' }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={ev.poster}
@@ -151,7 +151,7 @@ function EventRow({ ev, catColor }: { ev: ActivityRecord; catColor: string }) {
             />
           </div>
         ) : (
-          <ImgPlaceholder label={`海报 · ${ev.title}`} style={{ aspectRatio: '4/3', minHeight: '160px' }} />
+          <ImgPlaceholder label={`海报 · ${ev.title}`} style={{ aspectRatio: '3/4', minHeight: '160px' }} />
         )}
         <div className="px-4 md:px-8 py-6 flex flex-col justify-center">
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
