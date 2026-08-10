@@ -24,7 +24,7 @@ export default function Nav() {
   const isActive = (href: string) =>
     href === '/' || href === '/#about'
       ? pathname === '/'
-      : pathname.startsWith(href.split('#')[0])
+      : pathname?.startsWith(href.split('#')[0]) ?? false
 
   return (
     <>
