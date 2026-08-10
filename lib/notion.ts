@@ -94,6 +94,11 @@ function urlValue(page: NotionPage, names: string[]): string {
   return file?.file?.url ?? file?.external?.url ?? ''
 }
 
+function urlPropertyValue(page: NotionPage, names: string[]): string {
+  const p = getProp(page, names)
+  return typeof p?.url === 'string' && p.url ? p.url : ''
+}
+
 function numberValue(page: NotionPage, names: string[]): number | null {
   const value = getProp(page, names)?.number
   return typeof value === 'number' ? value : null
@@ -238,7 +243,7 @@ function normalizeNotionActivities(rows: NotionPage[]): ActivitiesPayload {
     const { date, time } = dateValue(row, ['开始时间', '日期', 'Date'])
     const title = textValue(row, ['活动名称', '名称', 'Name', 'Title']) || '未命名活动'
     const description = textValue(row, ['简介', '描述', 'Description'])
-    const poster = urlValue(row, ['海报图片 URL', '海报图片', '海报', 'Poster', 'Poster URL'])
+    const poster = urlPropertyValue(row, ['海报图片 URL', 'Poster URL'])
     const registerUrl = urlValue(row, ['报名链接（Eventbrite）', '报名链接', 'Register URL', '报名'])
     const reviewUrl = urlValue(row, ['回顾文章链接', 'Review URL', '回顾链接'])
     const generalPrice = numberValue(row, ['普通票价', 'General Price', '普通票'])

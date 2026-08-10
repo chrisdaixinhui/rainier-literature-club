@@ -47,6 +47,11 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/bui
 NOTION_API_KEY=secret_xxx
 NOTION_ACTIVITY_DB_ID=your-database-id
 ADMIN_PASSWORD=your-admin-password
+CLOUDINARY_CLOUD_NAME=your-cloud-name
+CLOUDINARY_API_KEY=your-api-key
+CLOUDINARY_API_SECRET=your-api-secret
+CLOUDINARY_FOLDER=rainier/activities
+CRON_SECRET=your-cron-secret
 ```
 
 ### Notion 数据库字段（活动）
@@ -63,6 +68,8 @@ ADMIN_PASSWORD=your-admin-password
 | 简介 | Text | 中文简介 |
 | 英文简介 | Text | 可选，英文简介 |
 | 海报图片 URL | URL | Cloudinary 公开图片链接 |
+| 海报图片 | Files & media | 运营者直接拖图，系统自动转存到 Cloudinary |
+| 海报图片同步标记 | Text | 自动维护，用于判断图片是否已同步 |
 | 普通票价 | Number | USD |
 | 支持者票价 | Number | USD |
 | 支持者票含周边说明 | Text | 可选 |
@@ -81,3 +88,22 @@ Notion 改完后可立即刷新缓存（通常 10 分钟内也会自动生效）
 curl -X POST http://localhost:3000/api/revalidate \
   -H "x-admin-key: $ADMIN_PASSWORD"
 ```
+
+### 图片自动转存（Notion 传图）
+
+运营者只需要把海报图片拖进 Notion 的「海报图片」字段，网站会通过同步任务把图片转存到 Cloudinary，并把永久链接写回「海报图片 URL」字段。
+
+手动执行：
+
+```bash
+npm run sync:images
+```
+
+或调用接口（带 `x-admin-key` 或 `Authorization: Bearer`）：
+
+```bash
+curl -X POST http://localhost:3000/api/sync-images \
+  -H "x-admin-key: $ADMIN_PASSWORD"
+```
+
+部署到 Vercel 后，`vercel.json` 里的 Cron 会每 10 分钟自动执行一次（需要配置 `CRON_SECRET` 环境变量用于鉴权）。
