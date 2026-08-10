@@ -1,9 +1,9 @@
 # 雨山前 Rainier Literature Society — 网站产品设计文档
 
-> **文档版本**：v0.5  
+> **文档版本**：v0.6  
 > **创建日期**：2026-05-12  
-> **更新日期**：2026-05-16  
-> **状态**：✅ Phase 0 完成 · Phase 1 内容填充阶段  
+> **更新日期**：2026-08-10  
+> **状态**：✅ Phase 0 完成 · Phase 1 内容填充阶段 · Phase 2 Notion CMS 已接入  
 > **负责人**：Chris Dai
 
 ---
@@ -219,8 +219,8 @@
 - Polaroid 风格小卡片排列，随机旋转（-2.5° 至 +2.8°）
 - Hover 时卡片回正 + 微放大（scale 1.04），过渡 `duration-500`
 - 每格显示往期活动名称 + 日期（活动花絮照片占位）
-- 现有 8 张占位卡片，涵盖：重建社群 Vol.1、红楼梦共读、YSQ Talk Vol.1/2、乱讲PPT等
-- **待补充**：替换为实际活动现场照片
+- 现有 8 张真实 Cloudinary 活动照片，涵盖：重建社群 Vol.1、红楼梦共读、YSQ Talk Vol.1/2、乱讲PPT等
+- 页面另含 4 张社群合影轮播（ImageCarousel）
 
 ---
 
@@ -279,18 +279,22 @@ Tab 切换时内容区淡入淡出过渡（fade 150ms）。
 
 #### Tab 1：即将举行 Upcoming
 
-**主推活动（最新一条）**：大卡片全宽展示
+**主推活动（最新一条）**：海报在上、文字在下（竖版卡片）
 
 ```
-┌────────────────────────────────────────────────────────────────┐
-│  [活动海报图]                    活动名称（大字）                │
-│  右侧 40% 宽度                   📅 时间：YYYY-MM-DD HH:MM       │
-│                                  📍 地点：具体地址               │
-│                                  活动简介（2–3 行）              │
-│                                                                 │
-│                                  [立即报名 Register →]          │
-└────────────────────────────────────────────────────────────────┘
+┌────────────────────────────────┐
+│         [活动海报 3:4]          │
+│         （1250 × 1667）         │
+├────────────────────────────────┤
+│  活动名称（大字）                │
+│  DATE · 日期  |  LOCATION · 地点 │
+│  简介（按 Notion 分段展示）       │
+│  [立即报名 Register →]          │
+└────────────────────────────────┘
 ```
+
+- 海报窗口固定 3:4（1250 × 1667），居中展示，最大宽度 480px
+- 文字区保留安全留白，正文按 Notion 换行自动分段，不再挤成一团
 
 **其余即将举行活动**：2–3 列网格卡片
 
@@ -543,35 +547,42 @@ Support Us · 支持我们
 
 ### 7.1 内容更新频率
 
-| 内容模块 | 更新频率 | Phase 0–1 方式 | Phase 2 方式 |
-|---------|---------|---------------|-------------|
-| 即将举行活动 | 每次活动后更新 | 编辑静态 JSON 文件 | Notion 数据库录入 |
-| 往期回顾 | 活动结束后 1 周内 | 编辑静态 JSON 文件 | Notion 数据库录入 |
-| 友社推荐 | 每 2–4 周 | 编辑静态 JSON 文件 | Notion 数据库录入 |
-| 票务信息 | 每次活动前更新 | 编辑静态 JSON 文件 | Notion 数据库录入 |
-| 每日一句语料库 | 按需补充（建议每季度） | 直接编辑 JSON 文件 | 直接编辑 JSON 文件 |
-| 邮件 Newsletter | 每周一次 | Mailchimp 模板编辑 | Mailchimp 模板编辑 |
+| 内容模块 | 更新频率 | 当前方式（已实现） |
+|---------|---------|------------------|
+| 即将举行活动 | 每次活动后更新 | Notion 数据库录入（静态 JSON 兜底） |
+| 往期回顾 | 活动结束后 1 周内 | Notion 数据库录入（静态 JSON 兜底） |
+| 友社推荐 | 每 2–4 周 | Notion 数据库录入（静态 JSON 兜底） |
+| 票务信息 | 每次活动前更新 | Notion 数据库录入（静态 JSON 兜底） |
+| 海报图片 | 每次活动前更新 | Notion「海报图片」字段拖图 → 自动转存 Cloudinary → 写回永久 URL |
+| 每日一句语料库 | 按需补充（建议每季度） | 静态 JSON（暂未迁移） |
+| 邮件 Newsletter | 每周一次 | Mailchimp 模板编辑（API 待接入） |
 
 ### 7.2 Notion 活动数据库结构（Phase 2）
 
 | 字段 | 类型 | 说明 |
 |------|------|------|
-| 活动名称 | Text | 中文 |
+| 活动名称 | Title | 中文，必填 |
 | 活动名称（英文） | Text | English |
 | 状态 | Select | 即将举行 / 已完成 / 草稿 |
-| 分类 | Select | 剧本围读 / 书目共读 / 诗歌工坊 / 亲子共读 / 嘉宾分享 |
-| 开始时间 | DateTime | |
-| 地点 | Text | |
-| 简介 | Text | 中英双语 |
-| 海报图片 | Files | |
+| 分类 | Select | 读书会 / 雨山前Talk / 三小时线上阅读 / 写作营 / 剧本围读 / 亲子共读 |
+| 开始时间 | Date | 活动日期时间 |
+| 地点 | Text | 活动地点 |
+| 地点详情 | Text | 详细地址，可留空 |
+| 简介 | Text | 中文简介，支持多段落 |
+| 英文简介 | Text | 可留空 |
+| 海报图片 | Files & media | 运营者直接拖图，自动转存 Cloudinary |
+| 海报图片 URL | URL | 系统自动写入 Cloudinary 永久链接 |
+| 海报图片同步标记 | Text | 系统自动维护，用于避免重复同步 |
 | 普通票价 | Number | USD |
 | 支持者票价 | Number | USD |
 | 支持者票含周边说明 | Text | |
 | 报名链接（Eventbrite） | URL | |
 | 回顾文章链接 | URL | 活动结束后填入 |
 | 是否置顶 | Checkbox | 主推活动 |
-| 是否友社活动 | Checkbox | |
+| 是否友社活动 | Checkbox | 勾选后进入友社推荐 |
 | 友社名称 | Text | 如是友社活动则填写 |
+| 友社名称（英文） | Text | 可留空 |
+| 友社链接 | URL | 友社活动外链 |
 
 ---
 
@@ -585,11 +596,12 @@ Support Us · 支持我们
 | 样式方案 | **Tailwind CSS v4** | `@theme` CSS 变量，与设计 token 对齐 |
 | 动画库 | **Framer Motion** + 原生 Canvas API | 声明式动画；雨效用轻量 Canvas（55 滴，低透明度） |
 | 字体 | Noto Serif SC / Playfair Display / Noto Sans SC / Inter | 现代报刊排版系统 |
-| 内容数据源 | **静态 JSON**（Phase 0–1）→ **Notion API**（Phase 2） | Phase 0–1 无需后端，Phase 2 接入后仅改数据层 |
+| 内容数据源 | **Notion API**（已接入，静态 JSON 作为兜底） | 运营者直接维护 Notion，网站每 10 分钟自动刷新 |
 | 语言方案 | **双语同时显示**，无 i18n 库 | 中英文各自成段，零配置成本 |
 | 电商 | **不接入**（Phase 0–1）| 票务跳转 Eventbrite 外链；Shopify 推迟至 Phase 2+ 视需求决定 |
 | 邮件营销 | **Mailchimp** | Phase 1 接入 API；Phase 0 先做 Modal UI |
-| 图片优化 | Next.js Image + Cloudinary | 自动 WebP 转换，CDN 加速 |
+| 图片存储 | **Cloudinary**（已接入自动转存） | Notion 拖图 → 自动上传 Cloudinary → 写回永久 URL |
+| 图片优化 | Cloudinary CDN | 当前使用原生 `<img>`，后续可迁移 next/image |
 | 部署 | **Vercel** | 免费，CI/CD 自动化，全球 CDN |
 | 域名 | 待定（建议 rainierlit.com） | |
 
@@ -610,30 +622,39 @@ rainier-lit/
 ├── app/
 │   ├── page.tsx              # About Us（首页）
 │   ├── activities/
-│   │   └── page.tsx          # 活动页
+│   │   └── page.tsx          # 活动页（服务端取数入口）
 │   ├── support/
-│   │   └── page.tsx          # 支持我们页（原 shop）
+│   │   └── page.tsx          # 支持我们页（服务端取数入口）
+│   ├── api/
+│   │   ├── revalidate/       # 手动刷新活动缓存
+│   │   └── sync-images/      # 手动触发 Notion 图片转存
 │   └── layout.tsx            # 全局布局（导航 + Footer）
 ├── components/
+│   ├── ActivitiesClient.tsx  # 活动页客户端组件（三 Tab、海报、分段文本）
+│   ├── SupportClient.tsx     # 支持页客户端组件（票务+周边）
 │   ├── HeroRain.tsx          # 雨效动画 + 诗句
 │   ├── Nav.tsx               # 导航栏
 │   ├── SubscribeModal.tsx    # 订阅弹窗
-│   ├── ActivityCard.tsx      # 活动卡片
-│   ├── TicketCard.tsx        # 票务双档卡片
+│   ├── ImageCarousel.tsx     # 社群合影轮播
+│   ├── PhotoWall.tsx         # 往期风采集
 │   ├── SentenceOfDay.tsx     # 每日一句
+│   ├── FooterYear.tsx        # 页脚年份（客户端组件）
 │   ├── DonateSection.tsx     # 捐赠区块
 │   └── Footer.tsx            # 页脚
 ├── lib/
-│   ├── notion.ts             # Notion API 封装（Phase 2）
-│   └── sentence.ts           # 每日一句逻辑
+│   ├── notion.ts             # Notion 数据层（活动标准化）
+│   ├── content.ts            # 统一内容出口（Notion → JSON 兜底 + 缓存）
+│   ├── cloudinary.ts         # Cloudinary 上传
+│   ├── notionSync.ts         # Notion 图片自动转存
+│   ├── admin.ts              # 管理接口鉴权
+│   └── types.ts              # 共享类型
+├── scripts/
+│   └── sync-images.mjs       # 图片同步脚本（npm run sync:images）
 ├── data/
-│   ├── activities.json       # 活动静态数据
-│   ├── tickets.json          # 票务静态数据
+│   ├── activities.json       # 活动静态数据（兜底）
 │   └── sentences.json        # 语料库
-├── public/
-│   └── images/               # 静态图片资源
-└── styles/
-    └── globals.css           # 全局样式 + 字体引入
+├── vercel.json               # Vercel Cron 定时同步
+└── .env.example              # 环境变量模板
 ```
 
 ### 8.4 性能目标
@@ -665,22 +686,23 @@ rainier-lit/
 
 ### Phase 1：内容填充（当前阶段）
 
-- [ ] 替换真实活动信息（海报图、详情文案）
-- [ ] 替换往期风采集真实活动照片（8 张）
-- [ ] 填入真实票价（普通票 + 支持者票）+ Eventbrite 报名链接
+- [x] 活动内容迁移至 Notion 维护（含海报自动转存；票价/报名链接仍待补）
+- [x] 替换往期风采集真实活动照片（8 张）
+- [ ] 填入真实票价（普通票 + 支持者票）+ Eventbrite 报名链接（当前为测试数据）
 - [ ] 接入 Mailchimp 邮件订阅 API（现为 UI 占位）
-- [ ] 每日一句语料库扩充至 50–100 句
+- [ ] 每日一句语料库扩充至 50–100 句（现 10 句）
 - [ ] 捐赠 Section 正式设计（文案、接收平台、档位）
-- [ ] SEO 基础配置（OG 标签、favicon、页面 meta description）
+- [ ] SEO 基础配置（部分完成：layout 已有 title/description/OG；缺每页 meta、OG 图片、sitemap）
 - [ ] 社媒账号链接填入 Footer（Instagram / 小红书 / 微信公众号）
 - [ ] 部署至 Vercel，绑定正式域名
 
 ### Phase 2：内容自动化（+2–4 周）
 
-- [ ] Notion API 接入，活动数据动态拉取
-- [ ] 往期回顾分类筛选上线
-- [ ] 友社推荐 Tab 上线
-- [ ] 周边商品页面（静态展示 + 外链）
+- [x] Notion API 接入，活动数据动态拉取（含 10 分钟缓存刷新 + 手动 revalidate）
+- [x] Notion 图片自动转存 Cloudinary（新增，2026-08-10）
+- [x] 往期回顾分类筛选上线（活动页分类筛选已实现）
+- [x] 友社推荐 Tab 上线（UI 已有，数据来自 Notion 友社字段）
+- [ ] 周边商品页面（静态展示 + 外链，当前为支持页内区块）
 
 ### Phase 3：增长功能（后续迭代）
 
@@ -730,50 +752,61 @@ rainier-lit/
 
 ---
 
-## 11. 当前代码实现快照（2026-05-16）
+## 11. 当前代码实现快照（2026-08-10）
 
 ### 已实现的组件文件
 
 | 文件 | 状态 | 说明 |
 |------|------|------|
-| `app/layout.tsx` | ✅ | 全局布局，字体注入，ModalProvider |
-| `app/page.tsx` | ✅ | 关于我们首页（Hero + 6 个 Section） |
-| `app/activities/page.tsx` | ✅ | 活动页，三 Tab 客户端组件 |
-| `app/support/page.tsx` | ✅ | 支持我们页，票务+周边+捐赠 |
-| `app/globals.css` | ✅ | @theme 色彩/字体 token，全局 btn 样式 |
-| `components/Nav.tsx` | ✅ | sticky 导航，中英双语 Tab，hamburger |
-| `components/HeroRain.tsx` | ✅ | Canvas 雨效 + Framer Motion 诗句动画 |
-| `components/Footer.tsx` | ✅ | 三段式 Footer（品牌→名片Donate→Newsletter） |
-| `components/FooterClient.tsx` | ✅ | 订阅按钮（客户端，openModal） |
-| `components/SentenceOfDay.tsx` | ✅ | Quote of the Day，居中，出处右下角 |
-| `components/PhotoWall.tsx` | ✅ | 往期风采集，Polaroid 风格，8 张占位 |
-| `components/DonateSection.tsx` | ✅ | 支持我们页完整捐赠区块（占位） |
-| `components/SubscribeModal.tsx` | ✅ | 邮箱订阅弹窗 |
-| `context/ModalContext.tsx` | ✅ | 全局 Modal 状态管理 |
-| `data/sentences.json` | ✅ | 10 句语料（待扩充至 50–100） |
-| `data/activities.json` | ✅ | 活动静态数据（即将举行/分类/友社/票务） |
+| `app/layout.tsx` | ✅ | 全局布局，字体注入，Metadata，ModalProvider |
+| `app/page.tsx` | ✅ | 关于我们首页（Hero + 轮播 + 各 Section） |
+| `app/activities/page.tsx` | ✅ | 活动页服务端入口，从 Notion/JSON 取数 |
+| `app/support/page.tsx` | ✅ | 支持页服务端入口，取票务数据 |
+| `components/ActivitiesClient.tsx` | ✅ | 活动页客户端组件（三 Tab、3:4 海报、分段正文） |
+| `components/SupportClient.tsx` | ✅ | 支持页客户端组件（票务+周边） |
+| `components/ImageCarousel.tsx` | ✅ | 社群合影轮播（4 张 Cloudinary 图） |
+| `components/PhotoWall.tsx` | ✅ | 往期风采集，8 张真实 Cloudinary 照片 |
+| `components/FooterYear.tsx` | ✅ | 页脚年份（客户端组件） |
+| `lib/notion.ts` | ✅ | Notion 数据层，标准化活动数据 |
+| `lib/content.ts` | ✅ | 统一内容出口（Notion → JSON 兜底，10 分钟缓存） |
+| `lib/cloudinary.ts` | ✅ | Cloudinary 签名上传 |
+| `lib/notionSync.ts` | ✅ | Notion 图片自动转存逻辑 |
+| `app/api/revalidate/route.ts` | ✅ | 手动刷新活动缓存 |
+| `app/api/sync-images/route.ts` | ✅ | 手动触发图片同步 |
+| `scripts/sync-images.mjs` | ✅ | `npm run sync:images` 同步脚本 |
+| `vercel.json` | ✅ | Vercel Cron（每 10 分钟同步图片） |
+| `data/sentences.json` | ✅ | 10 句语料（兜底，待扩充至 50–100） |
+| `data/activities.json` | ✅ | 活动静态数据（兜底） |
 
 ### 实际色彩 Token
 
 | Token | 色值 | 用途 |
 |-------|------|------|
 | `--color-paper` | `#FAF8F5` | 页面主背景 |
+| `--color-surface` | `#FFFFFF` | 卡片表面 |
 | `--color-ink` | `#1C2220` | 主要文字 |
 | `--color-muted` | `#68736E` | 次要文字 |
 | `--color-forest` | `#2E463D` | 主 Accent、按钮、激活态 |
+| `--color-forest-light` | `#3A5A4E` | 按钮 Hover |
 | `--color-sage` | `#8FA499` | 装饰、英文标签、次要元素 |
 | `--color-border` | `#E6E2DA` | 分割线 |
 | `--color-note` | `#F2EDE4` | Quote of the Day 背景 |
+| `--color-error` | `#C0392B` | 表单错误提示 |
 
 ### 构建状态
 
 ```
 Next.js 16.2.6 (Turbopack)
 ✓ TypeScript 零报错
-✓ 4 个静态路由全部生成
-✓ Vercel 生产构建通过
+✓ 本地 lint + 生产构建通过（2026-08-10）
+✓ 已生成静态导出预览包
+△ Vercel 线上部署待完成（环境变量见 README）
 ```
 
 ---
+
+### 变更记录
+
+- **2026-08-10 · v0.6**：接入 Notion CMS（活动数据动态拉取 + JSON 兜底）；接入 Cloudinary 图片自动转存（Notion 拖图 → Cloudinary → 写回永久 URL）；新增手动刷新/同步接口与 Vercel Cron；活动页主推改为海报 3:4 在上、分段正文在下；同步代码快照。
 
 *文档将随项目进展持续更新。如有修改建议请在对应 Section 留注。*
