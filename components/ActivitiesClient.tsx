@@ -28,14 +28,52 @@ function ImgPlaceholder({ label, style }: { label: string; style?: React.CSSProp
   )
 }
 
-// ── Upcoming event: full-width banner + accordion ──
-function UpcomingBanner({ ev }: { ev: ActivityRecord }) {
-  const [open, setOpen] = useState(false)
+// ── Paragraph renderer: keeps Notion's line breaks as separate paragraphs ──
+function Paragraphs({
+  text,
+  gap = 16,
+  style,
+}: {
+  text?: string | null
+  gap?: number
+  style?: React.CSSProperties
+}) {
+  if (!text) return null
+  const paragraphs = text
+    .split(/\n{2,}/)
+    .map((p) => p.trim())
+    .filter(Boolean)
 
   return (
-    <div style={{ border: '1px solid #E6E2DA', overflow: 'hidden' }}>
-      {/* Full-width poster */}
-      <div style={{ position: 'relative', width: '100%', maxWidth: '480px', margin: '0 auto', aspectRatio: '3/4' }}>
+    <>
+      {paragraphs.map((p, i) => (
+        <p
+          key={i}
+          style={{
+            fontFamily: 'var(--font-sans)',
+            fontSize: '14px',
+            lineHeight: 1.9,
+            color: 'rgba(28,34,32,0.72)',
+            marginBottom: i < paragraphs.length - 1 ? gap : 0,
+            ...style,
+          }}
+        >
+          {p}
+        </p>
+      ))}
+    </>
+  )
+}
+
+// ── Upcoming event: poster + text side-by-side ──
+function UpcomingBanner({ ev }: { ev: ActivityRecord }) {
+  return (
+    <div
+      className="grid grid-cols-1 md:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]"
+      style={{ border: '1px solid #E6E2DA', overflow: 'hidden' }}
+    >
+      {/* Poster */}
+      <div style={{ position: 'relative', width: '100%', aspectRatio: '3/4' }}>
         {ev.poster ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
@@ -46,76 +84,59 @@ function UpcomingBanner({ ev }: { ev: ActivityRecord }) {
         ) : (
           <ImgPlaceholder label="活动海报 · 3:4" style={{ position: 'absolute', inset: 0 }} />
         )}
-        {/* Overlay: event title on poster */}
-        <div className="px-4 md:px-9" style={{
-          position: 'absolute', inset: 0,
-          background: 'linear-gradient(to top, rgba(20,30,26,0.75) 0%, transparent 50%)',
-          display: 'flex', alignItems: 'flex-end', paddingTop: '32px', paddingBottom: '32px',
-        }}>
-          <div>
-            {ev.comingSoon && (
-              <span style={{
-                display: 'inline-block',
-                fontFamily: 'var(--font-label)', fontSize: '10px', letterSpacing: '0.16em',
-                color: 'rgba(255,255,255,0.7)', background: 'rgba(255,255,255,0.1)',
-                padding: '4px 12px', marginBottom: '12px',
-                border: '1px solid rgba(255,255,255,0.2)',
-              }}>
-                即将上线 · COMING SOON
-              </span>
-            )}
-            <h2 style={{
-              fontFamily: 'var(--font-serif)', fontSize: 'clamp(22px, 3.5vw, 38px)',
-              fontWeight: 700, color: '#ffffff', lineHeight: 1.2,
-            }}>
-              {ev.title}
-            </h2>
-            <p style={{ fontFamily: 'var(--font-label)', fontSize: '12px', color: 'rgba(255,255,255,0.65)', marginTop: '8px', letterSpacing: '0.06em' }}>
-              {ev.date} · {ev.location}
-            </p>
-          </div>
-        </div>
       </div>
 
-      {/* Expand toggle bar */}
-      <button
-        onClick={() => setOpen(!open)}
-        className="px-4 md:px-9"
-        style={{
-          width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          paddingTop: '16px', paddingBottom: '16px', background: '#FAF8F5', cursor: 'pointer',
-          borderTop: '1px solid #E6E2DA', transition: 'background 0.2s',
-        }}
-        onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = '#F2EDE4' }}
-        onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = '#FAF8F5' }}
+      {/* Text panel with safe padding */}
+      <div
+        className="px-6 py-8 md:px-12 md:py-12"
+        style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: '22px' }}
       >
-        <span style={{ fontFamily: 'var(--font-label)', fontSize: '11px', letterSpacing: '0.14em', color: '#68736E' }}>
-          {open ? '收起详情 CLOSE' : '查看详情 DETAILS'}
-        </span>
-        <svg
-          width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#68736E" strokeWidth="1.2"
-          style={{ transform: open ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.3s' }}
-        >
-          <polyline points="3,6 8,11 13,6"/>
-        </svg>
-      </button>
+        {ev.comingSoon && (
+          <span
+            style={{
+              alignSelf: 'flex-start',
+              fontFamily: 'var(--font-label)', fontSize: '10px', letterSpacing: '0.16em',
+              color: '#2E463D', background: '#2E463D18',
+              padding: '4px 12px',
+            }}
+          >
+            即将上线 · COMING SOON
+          </span>
+        )}
 
-      {/* Accordion detail panel */}
-      <div className={`accordion-content ${open ? 'open' : ''}`}>
-        <div className="px-4 md:px-9" style={{ paddingTop: '32px', paddingBottom: '36px', borderTop: '1px solid #E6E2DA' }}>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 md:gap-x-12" style={{ maxWidth: '700px' }}>
-            <div>
-              <p style={{ fontFamily: 'var(--font-label)', fontSize: '10px', letterSpacing: '0.16em', color: '#8FA499', marginBottom: '6px' }}>DATE · 日期</p>
-              <p style={{ fontFamily: 'var(--font-sans)', fontSize: '14px', color: '#1C2220' }}>{ev.date} {ev.time}</p>
-            </div>
-            <div>
-              <p style={{ fontFamily: 'var(--font-label)', fontSize: '10px', letterSpacing: '0.16em', color: '#8FA499', marginBottom: '6px' }}>LOCATION · 地点</p>
-              <p style={{ fontFamily: 'var(--font-sans)', fontSize: '14px', color: '#1C2220' }}>{ev.location}</p>
-            </div>
+        <div>
+          <h2 style={{
+            fontFamily: 'var(--font-serif)', fontSize: 'clamp(22px, 3vw, 34px)',
+            fontWeight: 700, color: '#1C2220', lineHeight: 1.3,
+          }}>
+            {ev.title}
+          </h2>
+          {ev.titleEn && (
+            <p style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: '14px', color: '#8FA499', marginTop: '8px' }}>
+              {ev.titleEn}
+            </p>
+          )}
+        </div>
+
+        <div
+          className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-4"
+          style={{ padding: '20px 24px', border: '1px solid #E6E2DA', background: '#F9F7F4' }}
+        >
+          <div>
+            <p style={{ fontFamily: 'var(--font-label)', fontSize: '10px', letterSpacing: '0.16em', color: '#8FA499', marginBottom: '6px' }}>DATE · 日期</p>
+            <p style={{ fontFamily: 'var(--font-sans)', fontSize: '14px', color: '#1C2220' }}>
+              {ev.date}{ev.time ? ` ${ev.time}` : ''}
+            </p>
           </div>
-          <p style={{ fontFamily: 'var(--font-sans)', fontSize: '15px', lineHeight: 1.85, color: 'rgba(28,34,32,0.7)', margin: '24px 0 32px' }}>
-            {ev.description}
-          </p>
+          <div>
+            <p style={{ fontFamily: 'var(--font-label)', fontSize: '10px', letterSpacing: '0.16em', color: '#8FA499', marginBottom: '6px' }}>LOCATION · 地点</p>
+            <p style={{ fontFamily: 'var(--font-sans)', fontSize: '14px', color: '#1C2220' }}>{ev.location}</p>
+          </div>
+        </div>
+
+        <Paragraphs text={ev.description} gap={18} />
+
+        <div style={{ marginTop: '4px' }}>
           <a
             href={ev.registerUrl ?? '#'}
             className="btn-filled"
@@ -194,10 +215,8 @@ function EventRow({ ev, catColor }: { ev: ActivityRecord; catColor: string }) {
 
       {/* Accordion detail */}
       <div className={`accordion-content ${open ? 'open' : ''}`}>
-        <div className="px-4 md:px-8 py-5" style={{ background: '#F9F7F4', borderTop: '1px solid #E6E2DA' }}>
-          <p style={{ fontFamily: 'var(--font-sans)', fontSize: '14px', lineHeight: 1.85, color: 'rgba(28,34,32,0.68)', maxWidth: '60ch', marginBottom: '20px' }}>
-            {ev.description}
-          </p>
+        <div className="px-6 md:px-10 py-8" style={{ background: '#F9F7F4', borderTop: '1px solid #E6E2DA' }}>
+          <Paragraphs text={ev.description} gap={14} style={{ maxWidth: '62ch', marginBottom: '20px' }} />
           {ev.reviewUrl && (
             <a href={ev.reviewUrl ?? '#'} style={{ fontFamily: 'var(--font-label)', fontSize: '12px', color: '#2E463D', letterSpacing: '0.08em', textDecoration: 'underline', textUnderlineOffset: '3px' }}>
               查看活动回顾 →
