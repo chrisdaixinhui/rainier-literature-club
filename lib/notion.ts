@@ -275,9 +275,17 @@ function normalizeNotionActivities(rows: NotionPage[]): ActivitiesPayload {
         partnerName: textValue(row, ['友社名称', 'Partner Name', '友社']) || '友社',
         partnerNameEn: textValue(row, ['友社名称（英文）', 'Partner Name (English)']) || null,
         eventName: title,
+        eventNameEn: activity.titleEn,
         date,
+        time,
+        location: activity.location,
+        locationDetail: activity.locationDetail,
         description: description || null,
+        descriptionEn: activity.descriptionEn,
+        poster: activity.poster,
         url: urlValue(row, ['友社链接', 'Partner URL']) || registerUrl || '#',
+        comingSoon: activity.comingSoon,
+        status,
       })
       continue
     }

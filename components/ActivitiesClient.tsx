@@ -1,8 +1,31 @@
 'use client'
-import { useState } from 'react'
-import type { ActivitiesPayload, ActivityRecord, CategoryRecord } from '@/lib/types'
 
-type Tab = 'upcoming' | 'all' | 'partners'
+import { useMemo, useState } from 'react'
+import type { ActivitiesPayload, ActivityRecord, PartnerRecord } from '@/lib/types'
+
+interface PinnedCardData {
+  id: string
+  title: string
+  titleEn?: string | null
+  sourceLabel: string
+  sourceName?: string | null
+  date?: string | null
+  time?: string | null
+  location?: string | null
+  description?: string | null
+  descriptionEn?: string | null
+  poster?: string | null
+  href?: string | null
+  comingSoon?: boolean
+  partner?: boolean
+}
+
+interface PastActivity {
+  event: ActivityRecord
+  categoryId: string
+  categoryName: string
+  categoryColor: string
+}
 
 function ImgPlaceholder({ label, style }: { label: string; style?: React.CSSProperties }) {
   return (
@@ -19,16 +42,17 @@ function ImgPlaceholder({ label, style }: { label: string; style?: React.CSSProp
       }}
     >
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#8FA499" strokeWidth="1">
-        <rect x="3" y="3" width="18" height="18" rx="1"/>
-        <circle cx="8.5" cy="8.5" r="1.5"/>
-        <polyline points="21 15 16 10 5 21"/>
+        <rect x="3" y="3" width="18" height="18" rx="1" />
+        <circle cx="8.5" cy="8.5" r="1.5" />
+        <polyline points="21 15 16 10 5 21" />
       </svg>
-      <span style={{ fontFamily: 'var(--font-label)', fontSize: '10px', color: '#8FA499', letterSpacing: '0.1em' }}>{label}</span>
+      <span style={{ fontFamily: 'var(--font-label)', fontSize: '10px', color: '#8FA499', letterSpacing: '0.1em' }}>
+        {label}
+      </span>
     </div>
   )
 }
 
-// ── Paragraph renderer: keeps Notion's line breaks as separate paragraphs ──
 function Paragraphs({
   text,
   gap = 16,
@@ -41,41 +65,74 @@ function Paragraphs({
   if (!text) return null
   const paragraphs = text
     .split(/\n{2,}/)
-    .map((p) => p.trim())
+    .map((paragraph) => paragraph.trim())
     .filter(Boolean)
 
   return (
     <>
-      {paragraphs.map((p, i) => (
+      {paragraphs.map((paragraph, index) => (
         <p
-          key={i}
+          key={index}
           style={{
             fontFamily: 'var(--font-sans)',
             fontSize: '14px',
             lineHeight: 1.9,
             color: 'rgba(28,34,32,0.72)',
-            marginBottom: i < paragraphs.length - 1 ? gap : 0,
+            marginBottom: index < paragraphs.length - 1 ? gap : 0,
             ...style,
           }}
         >
-          {p}
+          {paragraph}
         </p>
       ))}
     </>
   )
 }
 
-// ── Upcoming event: poster on top, text below ──
-function UpcomingBanner({ ev }: { ev: ActivityRecord }) {
+function hasUsableUrl(url?: string | null): url is string {
+  return Boolean(url && url.trim() && url.trim() !== '#')
+}
+
+function compareUpcomingDates(
+  a: { date?: string | null; title?: string },
+  b: { date?: string | null; title?: string },
+): number {
+  if (a.date && b.date) return a.date.localeCompare(b.date) || String(a.title ?? '').localeCompare(String(b.title ?? ''))
+  if (a.date) return -1
+  if (b.date) return 1
+  return String(a.title ?? '').localeCompare(String(b.title ?? ''))
+}
+
+function comparePastDates(a: PastActivity, b: PastActivity): number {
+  if (a.event.date && b.event.date) return b.event.date.localeCompare(a.event.date)
+  if (a.event.date) return -1
+  if (b.event.date) return 1
+  return a.event.title.localeCompare(b.event.title)
+}
+
+function PinnedActivityCard({ item }: { item: PinnedCardData }) {
+  const accent = item.partner ? '#65756E' : '#2E463D'
+  const actionLabel = item.partner
+    ? '了解详情 · Learn More'
+    : item.comingSoon
+      ? '预约提醒 · Notify Me'
+      : '立即报名 · Register'
+
   return (
-    <div style={{ border: '1px solid #E6E2DA', overflow: 'hidden' }}>
-      {/* Poster 1250 × 1667 */}
-      <div style={{ position: 'relative', width: '100%', maxWidth: '480px', margin: '0 auto', aspectRatio: '1250 / 1667' }}>
-        {ev.poster ? (
+    <article
+      style={{
+        border: '1px solid #E6E2DA',
+        background: '#FFFFFF',
+        overflow: 'hidden',
+      }}
+    >
+      <div style={{ position: 'relative', width: '100%', aspectRatio: '1250 / 1667', overflow: 'hidden' }}>
+        {item.poster ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
-            src={ev.poster}
-            alt={ev.title}
+            src={item.poster}
+            alt={`${item.title} 活动海报`}
+            loading="lazy"
             style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
           />
         ) : (
@@ -83,34 +140,80 @@ function UpcomingBanner({ ev }: { ev: ActivityRecord }) {
         )}
       </div>
 
-      {/* Text below */}
       <div
-        className="px-6 py-8 md:px-12 md:py-10"
-        style={{ borderTop: '1px solid #E6E2DA', display: 'flex', flexDirection: 'column', gap: '20px' }}
+        style={{
+          borderTop: '1px solid #E6E2DA',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '20px',
+          padding: 'clamp(28px, 4vw, 40px) clamp(24px, 5vw, 48px)',
+        }}
       >
-        {ev.comingSoon && (
+        <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '10px' }}>
           <span
             style={{
-              alignSelf: 'flex-start',
-              fontFamily: 'var(--font-label)', fontSize: '10px', letterSpacing: '0.16em',
-              color: '#2E463D', background: '#2E463D18',
-              padding: '4px 12px',
+              fontFamily: 'var(--font-label)',
+              fontSize: '10px',
+              letterSpacing: '0.16em',
+              color: accent,
+              background: `${accent}14`,
+              padding: '5px 12px',
             }}
           >
-            即将上线 · COMING SOON
+            {item.sourceLabel}
           </span>
-        )}
+          {item.comingSoon && (
+            <span
+              style={{
+                fontFamily: 'var(--font-label)',
+                fontSize: '10px',
+                letterSpacing: '0.14em',
+                color: '#8A6A42',
+                background: '#8A6A4212',
+                padding: '5px 12px',
+              }}
+            >
+              日期待定 · COMING SOON
+            </span>
+          )}
+        </div>
 
         <div>
-          <h2 style={{
-            fontFamily: 'var(--font-serif)', fontSize: 'clamp(22px, 3vw, 34px)',
-            fontWeight: 700, color: '#1C2220', lineHeight: 1.3,
-          }}>
-            {ev.title}
-          </h2>
-          {ev.titleEn && (
-            <p style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: '14px', color: '#8FA499', marginTop: '8px' }}>
-              {ev.titleEn}
+          {item.sourceName && (
+            <p
+              style={{
+                fontFamily: 'var(--font-label)',
+                fontSize: '11px',
+                color: '#68736E',
+                letterSpacing: '0.1em',
+                marginBottom: '10px',
+              }}
+            >
+              {item.sourceName}
+            </p>
+          )}
+          <h3
+            style={{
+              fontFamily: 'var(--font-serif)',
+              fontSize: 'clamp(22px, 3vw, 34px)',
+              fontWeight: 700,
+              color: '#1C2220',
+              lineHeight: 1.3,
+            }}
+          >
+            {item.title}
+          </h3>
+          {item.titleEn && (
+            <p
+              style={{
+                fontFamily: 'var(--font-display)',
+                fontStyle: 'italic',
+                fontSize: '14px',
+                color: '#8FA499',
+                marginTop: '8px',
+              }}
+            >
+              {item.titleEn}
             </p>
           )}
         </div>
@@ -120,357 +223,439 @@ function UpcomingBanner({ ev }: { ev: ActivityRecord }) {
           style={{ padding: '18px 22px', border: '1px solid #E6E2DA', background: '#F9F7F4' }}
         >
           <div>
-            <p style={{ fontFamily: 'var(--font-label)', fontSize: '10px', letterSpacing: '0.16em', color: '#8FA499', marginBottom: '6px' }}>DATE · 日期</p>
+            <p style={{ fontFamily: 'var(--font-label)', fontSize: '10px', letterSpacing: '0.16em', color: '#8FA499', marginBottom: '6px' }}>
+              DATE · 日期
+            </p>
             <p style={{ fontFamily: 'var(--font-sans)', fontSize: '14px', color: '#1C2220' }}>
-              {ev.date}{ev.time ? ` ${ev.time}` : ''}
+              {item.date ? `${item.date}${item.time ? ` ${item.time}` : ''}` : '日期待定'}
             </p>
           </div>
           <div>
-            <p style={{ fontFamily: 'var(--font-label)', fontSize: '10px', letterSpacing: '0.16em', color: '#8FA499', marginBottom: '6px' }}>LOCATION · 地点</p>
-            <p style={{ fontFamily: 'var(--font-sans)', fontSize: '14px', color: '#1C2220' }}>{ev.location}</p>
+            <p style={{ fontFamily: 'var(--font-label)', fontSize: '10px', letterSpacing: '0.16em', color: '#8FA499', marginBottom: '6px' }}>
+              LOCATION · 地点
+            </p>
+            <p style={{ fontFamily: 'var(--font-sans)', fontSize: '14px', color: '#1C2220' }}>
+              {item.location || '地点待公布'}
+            </p>
           </div>
         </div>
 
-        <Paragraphs text={ev.description} gap={18} />
+        <Paragraphs text={item.description} gap={18} />
+        {item.descriptionEn && (
+          <Paragraphs
+            text={item.descriptionEn}
+            gap={18}
+            style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', color: '#68736E' }}
+          />
+        )}
 
-        <div style={{ marginTop: '4px' }}>
-          <a
-            href={ev.registerUrl ?? '#'}
-            className="btn-filled"
-          >
-            {ev.comingSoon ? '预约提醒 · Notify Me' : '立即报名 · Register'}
-          </a>
-        </div>
+        {hasUsableUrl(item.href) && (
+          <div style={{ marginTop: '4px' }}>
+            <a href={item.href} className={item.partner ? 'btn-outline' : 'btn-filled'} target="_blank" rel="noreferrer">
+              {actionLabel}
+            </a>
+          </div>
+        )}
       </div>
-    </div>
+    </article>
   )
 }
 
-// ── Past event row — full-width horizontal ──
-function EventRow({ ev, catColor }: { ev: ActivityRecord; catColor: string }) {
+function EventRow({
+  event,
+  categoryName,
+  categoryColor,
+}: {
+  event: ActivityRecord
+  categoryName: string
+  categoryColor: string
+}) {
   const [open, setOpen] = useState(false)
+
   return (
-    <div
-      className="event-row"
-      style={{ borderBottom: '1px solid #E6E2DA', overflow: 'hidden' }}
-    >
-      {/* Row: poster (left 35%) + info (right 65%) */}
-      <div
-        style={{ display: 'grid', gridTemplateColumns: '35% 1fr', cursor: 'pointer' }}
-        onClick={() => setOpen(!open)}
+    <article className="event-row" style={{ borderBottom: '1px solid #E6E2DA', overflow: 'hidden' }}>
+      <button
+        type="button"
+        aria-expanded={open}
+        onClick={() => setOpen((value) => !value)}
+        style={{
+          display: 'grid',
+          gridTemplateColumns: '35% 1fr',
+          width: '100%',
+          padding: 0,
+          border: 0,
+          background: 'transparent',
+          textAlign: 'left',
+          cursor: 'pointer',
+          color: 'inherit',
+        }}
       >
-        {ev.poster ? (
+        {event.poster ? (
           <div style={{ position: 'relative', aspectRatio: '1250 / 1667', minHeight: '160px', overflow: 'hidden' }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src={ev.poster}
-              alt={ev.title}
+              src={event.poster}
+              alt={`${event.title} 活动海报`}
+              loading="lazy"
               style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
             />
           </div>
         ) : (
-          <ImgPlaceholder label={`海报 · ${ev.title}`} style={{ aspectRatio: '1250 / 1667', minHeight: '160px' }} />
+          <ImgPlaceholder label={`海报 · ${event.title}`} style={{ aspectRatio: '1250 / 1667', minHeight: '160px' }} />
         )}
-        <div className="px-4 md:px-8 py-6 flex flex-col justify-center">
+
+        <div
+          className="flex flex-col justify-center"
+          style={{ padding: '24px clamp(16px, 4vw, 32px)' }}
+        >
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
-            <span style={{
-              fontFamily: 'var(--font-label)', fontSize: '10px', letterSpacing: '0.12em',
-              padding: '2px 8px', color: catColor,
-              background: catColor + '18',
-            }}>
-              {ev.subType}
+            <span
+              style={{
+                fontFamily: 'var(--font-label)',
+                fontSize: '10px',
+                letterSpacing: '0.12em',
+                padding: '2px 8px',
+                color: categoryColor,
+                background: `${categoryColor}18`,
+              }}
+            >
+              {event.subType || categoryName}
             </span>
-            {ev.status === 'coming_soon' && (
-              <span style={{ fontFamily: 'var(--font-label)', fontSize: '10px', letterSpacing: '0.1em', color: '#2E463D', background: '#2E463D18', padding: '2px 8px' }}>
-                即将上线
-              </span>
-            )}
           </div>
-          <h4 style={{
-            fontFamily: 'var(--font-serif)', fontSize: 'clamp(15px, 2vw, 19px)',
-            fontWeight: 700, color: '#1C2220', lineHeight: 1.3, marginBottom: '8px',
-          }}>
-            {ev.title}
-          </h4>
-          {ev.date && (
+          <h3
+            style={{
+              fontFamily: 'var(--font-serif)',
+              fontSize: 'clamp(15px, 2vw, 19px)',
+              fontWeight: 700,
+              color: '#1C2220',
+              lineHeight: 1.3,
+              marginBottom: '8px',
+            }}
+          >
+            {event.title}
+          </h3>
+          {event.date && (
             <p style={{ fontFamily: 'var(--font-label)', fontSize: '11px', color: '#8FA499', letterSpacing: '0.08em' }}>
-              {ev.date}
+              {event.date}
             </p>
           )}
-          {/* Expand toggle */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '16px' }}>
             <span style={{ fontFamily: 'var(--font-label)', fontSize: '10px', color: '#8FA499', letterSpacing: '0.12em' }}>
               {open ? '收起' : '展开详情'}
             </span>
-            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="#8FA499" strokeWidth="1.2"
-              style={{ transform: open ? 'rotate(180deg)' : 'rotate(0)', transition: 'transform 0.3s' }}>
-              <polyline points="2,4 6,8 10,4"/>
+            <svg
+              width="12"
+              height="12"
+              viewBox="0 0 12 12"
+              fill="none"
+              stroke="#8FA499"
+              strokeWidth="1.2"
+              style={{ transform: open ? 'rotate(180deg)' : 'rotate(0)', transition: 'transform 0.3s' }}
+            >
+              <polyline points="2,4 6,8 10,4" />
             </svg>
           </div>
         </div>
-      </div>
+      </button>
 
-      {/* Accordion detail */}
       <div className={`accordion-content ${open ? 'open' : ''}`}>
-        <div className="px-6 md:px-10 py-8" style={{ background: '#F9F7F4', borderTop: '1px solid #E6E2DA' }}>
-          <Paragraphs text={ev.description} gap={14} style={{ maxWidth: '62ch', marginBottom: '20px' }} />
-          {ev.reviewUrl && (
-            <a href={ev.reviewUrl ?? '#'} style={{ fontFamily: 'var(--font-label)', fontSize: '12px', color: '#2E463D', letterSpacing: '0.08em', textDecoration: 'underline', textUnderlineOffset: '3px' }}>
+        <div
+          style={{
+            background: '#F9F7F4',
+            borderTop: '1px solid #E6E2DA',
+            padding: '32px clamp(24px, 4vw, 40px)',
+          }}
+        >
+          <Paragraphs text={event.description} gap={14} style={{ maxWidth: '62ch', marginBottom: event.reviewUrl ? '20px' : 0 }} />
+          {hasUsableUrl(event.reviewUrl) && (
+            <a
+              href={event.reviewUrl}
+              target="_blank"
+              rel="noreferrer"
+              style={{
+                fontFamily: 'var(--font-label)',
+                fontSize: '12px',
+                color: '#2E463D',
+                letterSpacing: '0.08em',
+                textDecoration: 'underline',
+                textUnderlineOffset: '3px',
+              }}
+            >
               查看活动回顾 →
             </a>
           )}
-          {(ev.registerUrl && !ev.comingSoon) && (
-            <a href={ev.registerUrl ?? '#'} className="btn-filled" style={{ marginTop: '0', fontSize: '12px', padding: '9px 20px' }}>
-              立即报名
-            </a>
-          )}
         </div>
       </div>
-    </div>
+    </article>
   )
 }
 
-// ── Category card (horizontal scroll) ──
-function CategoryCard({ cat, onClick }: { cat: CategoryRecord; onClick: () => void }) {
-  return (
-    <button
-      onClick={onClick}
-      className="btn-filled"
-      style={{
-        flexShrink: 0, minWidth: '200px', padding: '0',
-        background: 'transparent', color: cat.color,
-        border: `1px solid ${cat.color}`,
-        display: 'flex', flexDirection: 'column', alignItems: 'flex-start',
-        textAlign: 'left', overflow: 'hidden', borderRadius: '2px',
-        transition: 'all 0.25s',
-      }}
-      onMouseEnter={e => {
-        (e.currentTarget as HTMLButtonElement).style.background = cat.color;
-        (e.currentTarget as HTMLButtonElement).style.color = '#fff';
-      }}
-      onMouseLeave={e => {
-        (e.currentTarget as HTMLButtonElement).style.background = 'transparent';
-        (e.currentTarget as HTMLButtonElement).style.color = cat.color;
-      }}
-    >
-      <div style={{ padding: '20px 24px' }}>
-        <p style={{ fontFamily: 'var(--font-label)', fontSize: '9px', letterSpacing: '0.18em', textTransform: 'uppercase', opacity: 0.6, marginBottom: '8px' }}>
-          {cat.nameEn}
-        </p>
-        <p style={{ fontFamily: 'var(--font-serif)', fontSize: '17px', fontWeight: 700, marginBottom: '6px' }}>{cat.name}</p>
-        <p style={{ fontFamily: 'var(--font-sans)', fontSize: '12px', opacity: 0.7, lineHeight: 1.5 }}>{cat.tagline}</p>
-        <p style={{ fontFamily: 'var(--font-label)', fontSize: '10px', opacity: 0.5, marginTop: '12px', letterSpacing: '0.06em' }}>
-          {cat.comingSoon ? '即将上线' : `${cat.events.length} 期 →`}
-        </p>
-      </div>
-    </button>
-  )
+function activityToPinnedCard(event: ActivityRecord): PinnedCardData {
+  return {
+    id: event.id,
+    title: event.title,
+    titleEn: event.titleEn,
+    sourceLabel: '雨山前活动 · UPCOMING',
+    date: event.date,
+    time: event.time,
+    location: event.location,
+    description: event.description,
+    descriptionEn: event.descriptionEn,
+    poster: event.poster,
+    href: event.registerUrl,
+    comingSoon: event.comingSoon,
+  }
+}
+
+function partnerToPinnedCard(partner: PartnerRecord): PinnedCardData {
+  return {
+    id: partner.id,
+    title: partner.eventName,
+    titleEn: partner.eventNameEn,
+    sourceLabel: '友社推荐 · PARTNER PICK',
+    sourceName: partner.partnerName,
+    date: partner.date,
+    time: partner.time,
+    location: partner.location,
+    description: partner.description,
+    descriptionEn: partner.descriptionEn,
+    poster: partner.poster,
+    href: partner.url,
+    comingSoon: partner.comingSoon,
+    partner: true,
+  }
 }
 
 export default function ActivitiesClient({ initialData }: { initialData: ActivitiesPayload }) {
-  const [tab, setTab] = useState<Tab>('upcoming')
-  const [selectedCat, setSelectedCat] = useState<string | null>(null)
-  const [data] = useState(initialData)
+  const [selectedCategory, setSelectedCategory] = useState<string>('all')
 
-  const currentCat = selectedCat ? data.categories.find(c => c.id === selectedCat) : null
+  const rainierPinned = useMemo(
+    () => [...initialData.upcoming].sort((a, b) => compareUpcomingDates(a, b)).map(activityToPinnedCard),
+    [initialData.upcoming],
+  )
 
-  const TABS = [
-    { key: 'upcoming' as Tab, label: '即将举行', en: 'Upcoming' },
-    { key: 'all' as Tab, label: '全部活动', en: 'All Events' },
-    { key: 'partners' as Tab, label: '友社推荐', en: 'Partners' },
-  ]
+  const partnerPinned = useMemo(
+    () =>
+      initialData.partners
+        .filter((partner) => partner.status !== 'past')
+        .sort((a, b) => compareUpcomingDates({ date: a.date, title: a.eventName }, { date: b.date, title: b.eventName }))
+        .map(partnerToPinnedCard),
+    [initialData.partners],
+  )
+
+  const pastActivities = useMemo(
+    () =>
+      initialData.categories
+        .flatMap((category) =>
+          category.events
+            .filter((event) => event.status === 'past')
+            .map((event) => ({
+              event,
+              categoryId: category.id,
+              categoryName: category.name,
+              categoryColor: category.color,
+            })),
+        )
+        .sort(comparePastDates),
+    [initialData.categories],
+  )
+
+  const pastCategories = useMemo(
+    () =>
+      initialData.categories.filter((category) =>
+        pastActivities.some((activity) => activity.categoryId === category.id),
+      ),
+    [initialData.categories, pastActivities],
+  )
+
+  const visiblePastActivities = selectedCategory === 'all'
+    ? pastActivities
+    : pastActivities.filter((activity) => activity.categoryId === selectedCategory)
 
   return (
     <div style={{ minHeight: '100vh', background: '#FAF8F5' }}>
-
-      {/* Page header — centered */}
-      <div className="px-4 md:px-6" style={{ paddingTop: '120px', paddingBottom: '48px', textAlign: 'center', borderBottom: '1px solid #E6E2DA' }}>
-        <p className="label-sm" style={{ marginBottom: '16px' }}>Activities · 活动</p>
-        <h1 style={{
-          fontFamily: 'var(--font-serif)', fontSize: 'clamp(32px, 5vw, 52px)',
-          fontWeight: 700, letterSpacing: '-0.01em', color: '#1C2220',
-        }}>
+      <header
+        style={{
+          padding: '120px clamp(16px, 3vw, 24px) 56px',
+          textAlign: 'center',
+          borderBottom: '1px solid #E6E2DA',
+        }}
+      >
+        <p className="label-sm" style={{ marginBottom: '16px' }}>
+          Activities · 活动
+        </p>
+        <h1
+          style={{
+            fontFamily: 'var(--font-serif)',
+            fontSize: 'clamp(32px, 5vw, 52px)',
+            fontWeight: 700,
+            letterSpacing: '-0.01em',
+            color: '#1C2220',
+          }}
+        >
           我们的活动
         </h1>
-      </div>
+        <p
+          style={{
+            maxWidth: '560px',
+            margin: '18px auto 0',
+            fontFamily: 'var(--font-sans)',
+            fontSize: '14px',
+            lineHeight: 1.8,
+            color: '#68736E',
+          }}
+        >
+          在这里找到下一次相聚，也翻阅我们共同留下的阅读现场。
+        </p>
+      </header>
 
-      {/* Sticky tab bar */}
-      <div style={{
-        position: 'sticky', top: '64px', zIndex: 30,
-        background: 'rgba(250,248,245,0.95)', backdropFilter: 'blur(8px)',
-        borderBottom: '1px solid #E6E2DA',
-        display: 'flex', justifyContent: 'center',
-      }}>
-        <div style={{ display: 'flex', gap: '0' }}>
-          {TABS.map(t => (
-            <button
-              key={t.key}
-              onClick={() => { setTab(t.key); setSelectedCat(null) }}
-              className="px-3 md:px-7"
-              style={{
-                paddingTop: '16px', paddingBottom: '16px',
-                fontFamily: 'var(--font-sans)', fontSize: '13px',
-                border: 'none',
-                borderBottom: tab === t.key ? '2px solid #2E463D' : '2px solid transparent',
-                color: tab === t.key ? '#2E463D' : '#68736E',
-                fontWeight: tab === t.key ? '500' : '400',
-                background: 'transparent',
-                cursor: 'pointer' as const, whiteSpace: 'nowrap' as const,
-                transition: 'color 0.2s, border-color 0.2s',
-              }}
+      <div
+        style={{
+          maxWidth: '960px',
+          margin: '0 auto',
+          padding: '72px clamp(16px, 3vw, 24px) 96px',
+        }}
+      >
+        <section aria-labelledby="rainier-upcoming-heading">
+          <div style={{ marginBottom: '36px' }}>
+            <p className="label-sm" style={{ marginBottom: '12px' }}>
+              Pinned · 置顶
+            </p>
+            <h2
+              id="rainier-upcoming-heading"
+              style={{ fontFamily: 'var(--font-serif)', fontSize: 'clamp(26px, 4vw, 40px)', fontWeight: 700, color: '#1C2220' }}
             >
-              {t.label}
-              <span className="hidden sm:inline" style={{ marginLeft: '6px', fontSize: '10px', letterSpacing: '0.1em', opacity: 0.45 }}>{t.en}</span>
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <div className="px-4 md:px-6" style={{ maxWidth: '900px', margin: '0 auto', paddingTop: '56px', paddingBottom: '56px' }}>
-
-        {/* ── UPCOMING TAB ── */}
-        {tab === 'upcoming' && (
-          <div>
-            {data.upcoming.length === 0 ? (
-              <div style={{ padding: '96px 0', textAlign: 'center' }}>
-                <p style={{ fontSize: '48px', opacity: 0.15, marginBottom: '16px' }}>🌧️</p>
-                <p style={{ fontFamily: 'var(--font-sans)', color: '#8FA499', fontSize: '14px' }}>敬请期待 · Coming Soon</p>
-              </div>
-            ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '48px' }}>
-                {data.upcoming.map(ev => (
-                  <UpcomingBanner key={ev.id} ev={ev} />
-                ))}
-              </div>
-            )}
+              雨山前活动
+            </h2>
+            <p style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: '14px', color: '#8FA499', marginTop: '8px' }}>
+              Upcoming by Rainier Literature Society
+            </p>
           </div>
-        )}
 
-        {/* ── ALL EVENTS TAB ── */}
-        {tab === 'all' && (
-          <div>
-            {selectedCat && (
-              <button
-                onClick={() => setSelectedCat(null)}
-                style={{
-                  display: 'flex', alignItems: 'center', gap: '8px',
-                  fontFamily: 'var(--font-label)', fontSize: '12px', color: '#68736E',
-                  letterSpacing: '0.08em', marginBottom: '40px', background: 'none', border: 'none',
-                  transition: 'color 0.2s',
-                }}
-                onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = '#1C2220' }}
-                onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = '#68736E' }}
+          {rainierPinned.length > 0 ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '64px' }}>
+              {rainierPinned.map((item) => (
+                <PinnedActivityCard key={item.id} item={item} />
+              ))}
+            </div>
+          ) : (
+            <div style={{ padding: '72px 24px', textAlign: 'center', border: '1px dashed #D8D2C8' }}>
+              <p style={{ fontSize: '40px', opacity: 0.15, marginBottom: '14px' }}>🌧️</p>
+              <p style={{ fontFamily: 'var(--font-sans)', color: '#8FA499', fontSize: '14px' }}>
+                新活动正在路上 · More gatherings coming soon
+              </p>
+            </div>
+          )}
+        </section>
+
+        {partnerPinned.length > 0 && (
+          <section aria-labelledby="partner-heading" style={{ marginTop: '96px', paddingTop: '72px', borderTop: '1px solid #D8D2C8' }}>
+            <div style={{ marginBottom: '36px' }}>
+              <p className="label-sm" style={{ marginBottom: '12px' }}>
+                Partner Picks · 置顶
+              </p>
+              <h2
+                id="partner-heading"
+                style={{ fontFamily: 'var(--font-serif)', fontSize: 'clamp(26px, 4vw, 40px)', fontWeight: 700, color: '#1C2220' }}
               >
-                <svg width="14" height="10" viewBox="0 0 14 10" fill="none" stroke="currentColor" strokeWidth="1.2" style={{ transform: 'rotate(180deg)' }}>
-                  <line x1="0" y1="5" x2="12" y2="5"/>
-                  <polyline points="8,1 12,5 8,9"/>
-                </svg>
-                返回全部活动
-              </button>
-            )}
+                友社推荐
+              </h2>
+              <p style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: '14px', color: '#8FA499', marginTop: '8px' }}>
+                Events from Friends & Partners
+              </p>
+            </div>
 
-            {!selectedCat ? (
-              <>
-                {/* Category horizontal scroll */}
-                <p className="label-sm" style={{ marginBottom: '24px', textAlign: 'center' }}>选择分类 · Choose a Category</p>
-                <div style={{ display: 'flex', gap: '16px', overflowX: 'auto', paddingBottom: '8px', justifyContent: 'center', flexWrap: 'wrap' }}>
-                  {data.categories.map(cat => (
-                    <CategoryCard key={cat.id} cat={cat} onClick={() => setSelectedCat(cat.id)} />
-                  ))}
-                </div>
-
-                {/* Partners — hyperlinks only */}
-                <div style={{ marginTop: '72px', paddingTop: '40px', borderTop: '1px solid #E6E2DA', textAlign: 'center' }}>
-                  <p className="label-sm" style={{ marginBottom: '24px' }}>Partner Events · 友社推荐</p>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', alignItems: 'center' }}>
-                    {data.partners.map(p => (
-                      <a
-                        key={p.id}
-                        href={p.url ?? '#'}
-                        style={{
-                          fontFamily: 'var(--font-serif)', fontSize: '15px', color: '#1C2220',
-                          textDecoration: 'underline', textDecorationColor: '#E6E2DA',
-                          textUnderlineOffset: '4px', transition: 'all 0.2s',
-                          lineHeight: 2,
-                        }}
-                        onMouseEnter={e => {
-                          (e.currentTarget as HTMLAnchorElement).style.color = '#2E463D';
-                          (e.currentTarget as HTMLAnchorElement).style.textDecorationColor = '#2E463D';
-                        }}
-                        onMouseLeave={e => {
-                          (e.currentTarget as HTMLAnchorElement).style.color = '#1C2220';
-                          (e.currentTarget as HTMLAnchorElement).style.textDecorationColor = '#E6E2DA';
-                        }}
-                      >
-                        {p.partnerName} · {p.eventName}
-                        <span style={{ fontFamily: 'var(--font-label)', fontSize: '11px', color: '#8FA499', marginLeft: '12px' }}>{p.date}</span>
-                      </a>
-                    ))}
-                  </div>
-                </div>
-              </>
-            ) : currentCat && (
-              <div>
-                {/* Category header */}
-                <div style={{ textAlign: 'center', marginBottom: '48px' }}>
-                  <p className="label-sm" style={{ marginBottom: '12px' }}>{currentCat.nameEn}</p>
-                  <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: 'clamp(24px, 4vw, 38px)', fontWeight: 700, color: '#1C2220' }}>
-                    {currentCat.name}
-                  </h2>
-                  <p style={{ fontFamily: 'var(--font-sans)', fontSize: '14px', color: '#68736E', marginTop: '8px' }}>
-                    {currentCat.tagline}
-                  </p>
-                </div>
-
-                {currentCat.comingSoon ? (
-                  <div style={{ padding: '80px 0', textAlign: 'center', border: '1px dashed #E6E2DA' }}>
-                    <p style={{ fontFamily: 'var(--font-serif)', fontSize: '16px', color: 'rgba(28,34,32,0.35)' }}>敬请期待 · Coming Soon</p>
-                  </div>
-                ) : (
-                  /* Full-width event rows with hover dimming */
-                  <div className="event-rows" style={{ border: '1px solid #E6E2DA' }}>
-                    {currentCat.events.map(ev => (
-                      <EventRow key={ev.id} ev={ev} catColor={currentCat.color} />
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '64px' }}>
+              {partnerPinned.map((item) => (
+                <PinnedActivityCard key={item.id} item={item} />
+              ))}
+            </div>
+          </section>
         )}
 
-        {/* ── PARTNERS TAB ── */}
-        {tab === 'partners' && (
-          <div style={{ textAlign: 'center' }}>
-            <p className="label-sm" style={{ marginBottom: '40px' }}>Partner Events · 友社推荐</p>
-            {data.partners.length === 0 ? (
-              <p style={{ fontFamily: 'var(--font-sans)', color: '#8FA499', padding: '64px 0' }}>暂无友社推荐</p>
-            ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', alignItems: 'center' }}>
-                {data.partners.map(p => (
-                  <div key={p.id} style={{ maxWidth: '500px', width: '100%', textAlign: 'center', padding: '16px 0', borderBottom: '1px solid #E6E2DA' }}>
-                    <a
-                      href={p.url ?? '#'}
+        <section aria-labelledby="past-events-heading" style={{ marginTop: '104px', paddingTop: '72px', borderTop: '1px solid #D8D2C8' }}>
+          <div style={{ marginBottom: '32px' }}>
+            <p className="label-sm" style={{ marginBottom: '12px' }}>
+              Archive · 往期
+            </p>
+            <h2
+              id="past-events-heading"
+              style={{ fontFamily: 'var(--font-serif)', fontSize: 'clamp(26px, 4vw, 40px)', fontWeight: 700, color: '#1C2220' }}
+            >
+              往期活动
+            </h2>
+            <p style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: '14px', color: '#8FA499', marginTop: '8px' }}>
+              Past Events
+            </p>
+          </div>
+
+          {pastActivities.length > 0 ? (
+            <>
+              <div
+                aria-label="往期活动分类"
+                style={{ display: 'flex', gap: '10px', overflowX: 'auto', paddingBottom: '12px', marginBottom: '28px' }}
+              >
+                <button
+                  type="button"
+                  onClick={() => setSelectedCategory('all')}
+                  aria-pressed={selectedCategory === 'all'}
+                  style={{
+                    flexShrink: 0,
+                    border: `1px solid ${selectedCategory === 'all' ? '#2E463D' : '#D8D2C8'}`,
+                    background: selectedCategory === 'all' ? '#2E463D' : 'transparent',
+                    color: selectedCategory === 'all' ? '#FFFFFF' : '#68736E',
+                    padding: '9px 16px',
+                    fontFamily: 'var(--font-label)',
+                    fontSize: '11px',
+                    letterSpacing: '0.08em',
+                    cursor: 'pointer',
+                  }}
+                >
+                  全部 · ALL
+                </button>
+                {pastCategories.map((category) => {
+                  const active = selectedCategory === category.id
+                  return (
+                    <button
+                      key={category.id}
+                      type="button"
+                      onClick={() => setSelectedCategory(category.id)}
+                      aria-pressed={active}
                       style={{
-                        fontFamily: 'var(--font-serif)', fontSize: '16px', color: '#1C2220',
-                        textDecoration: 'underline', textDecorationColor: '#E6E2DA',
-                        textUnderlineOffset: '4px', transition: 'all 0.2s', display: 'block', marginBottom: '6px',
+                        flexShrink: 0,
+                        border: `1px solid ${active ? category.color : '#D8D2C8'}`,
+                        background: active ? category.color : 'transparent',
+                        color: active ? '#FFFFFF' : '#68736E',
+                        padding: '9px 16px',
+                        fontFamily: 'var(--font-label)',
+                        fontSize: '11px',
+                        letterSpacing: '0.08em',
+                        cursor: 'pointer',
                       }}
-                      onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.color = '#2E463D'; (e.currentTarget as HTMLAnchorElement).style.textDecorationColor = '#2E463D' }}
-                      onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.color = '#1C2220'; (e.currentTarget as HTMLAnchorElement).style.textDecorationColor = '#E6E2DA' }}
                     >
-                      {p.eventName}
-                    </a>
-                    <p style={{ fontFamily: 'var(--font-label)', fontSize: '11px', color: '#8FA499', letterSpacing: '0.08em' }}>
-                      {p.partnerName} · {p.date}
-                    </p>
-                    <p style={{ fontFamily: 'var(--font-sans)', fontSize: '13px', color: '#68736E', marginTop: '6px' }}>{p.description}</p>
-                  </div>
+                      {category.name}
+                    </button>
+                  )
+                })}
+              </div>
+
+              <div className="event-rows" style={{ border: '1px solid #E6E2DA', borderBottom: 0 }}>
+                {visiblePastActivities.map((activity) => (
+                  <EventRow
+                    key={activity.event.id}
+                    event={activity.event}
+                    categoryName={activity.categoryName}
+                    categoryColor={activity.categoryColor}
+                  />
                 ))}
               </div>
-            )}
-          </div>
-        )}
+            </>
+          ) : (
+            <div style={{ padding: '64px 24px', textAlign: 'center', border: '1px dashed #D8D2C8' }}>
+              <p style={{ fontFamily: 'var(--font-sans)', color: '#8FA499', fontSize: '14px' }}>往期内容整理中</p>
+            </div>
+          )}
+        </section>
       </div>
     </div>
   )

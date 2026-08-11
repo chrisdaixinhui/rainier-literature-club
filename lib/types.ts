@@ -36,9 +36,17 @@ export interface PartnerRecord {
   partnerName: string
   partnerNameEn?: string | null
   eventName: string
+  eventNameEn?: string | null
   date?: string | null
+  time?: string | null
+  location?: string | null
+  locationDetail?: string | null
   description?: string | null
+  descriptionEn?: string | null
+  poster?: string | null
   url?: string | null
+  comingSoon?: boolean
+  status?: ActivityStatus
 }
 
 export interface TicketRecord {

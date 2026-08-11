@@ -1,5 +1,6 @@
 'use client'
 import { useState, useEffect } from 'react'
+import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useModal } from '@/context/ModalContext'
@@ -29,8 +30,15 @@ export default function Nav() {
   return (
     <>
       <nav
-        className="sticky top-0 z-50 flex items-center justify-between px-6 md:px-12 py-3 border-b"
+        className="flex items-center justify-between border-b"
         style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          zIndex: 100,
+          minHeight: '64px',
+          padding: '12px clamp(16px, 3vw, 48px)',
           background: 'rgba(250,248,245,0.85)',
           borderColor: 'rgba(230,226,218,0.55)',
           backdropFilter: 'blur(14px)',
@@ -38,16 +46,20 @@ export default function Nav() {
         }}
       >
         {/* Logo */}
-        <Link href="/" className="flex items-baseline gap-2.5">
-          <span style={{ fontFamily: 'var(--font-serif)', fontSize: '21px', fontWeight: 700, letterSpacing: '-0.01em', color: '#1C2220' }}>
-            雨山前
-          </span>
-          <span
-            className="hidden sm:block"
-            style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: '10px', letterSpacing: '0.18em', textTransform: 'uppercase', color: '#68736E', paddingBottom: '2px' }}
-          >
-            Rainier Lit
-          </span>
+        <Link href="/" className="flex items-center" aria-label="雨山前 Rainier Literature Society 首页">
+          <Image
+            src="/rainier-logo-horizontal-black.png"
+            alt="雨山前 Rainier Literature Society"
+            width={3479}
+            height={1111}
+            priority
+            style={{
+              width: 'auto',
+              height: '38px',
+              objectFit: 'contain',
+              transform: 'translateY(5px)',
+            }}
+          />
         </Link>
 
         {/* Desktop nav */}
@@ -126,10 +138,13 @@ export default function Nav() {
         </button>
       </nav>
 
+      {/* Fixed navigation is removed from document flow; keep page content below it. */}
+      <div aria-hidden="true" style={{ height: '64px' }} />
+
       {/* Mobile fullscreen menu */}
       <div
-        className={`fixed inset-0 z-40 flex flex-col items-start justify-center px-10 gap-10 transition-all duration-500 ${menuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
-        style={{ background: '#FAF8F5' }}
+        className={`fixed inset-0 z-40 flex flex-col items-start justify-center gap-10 transition-all duration-500 ${menuOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
+        style={{ background: '#FAF8F5', padding: '96px 40px 40px' }}
       >
         <div className="mb-4 border-b pb-4 w-full" style={{ borderColor: '#E6E2DA' }}>
           <p className="label-sm">Menu · 导航</p>

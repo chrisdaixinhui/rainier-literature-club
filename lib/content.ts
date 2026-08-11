@@ -70,9 +70,17 @@ interface StaticPartnerInput {
   partnerName?: string
   partnerNameEn?: string | null
   eventName?: string
+  eventNameEn?: string | null
   date?: string | null
+  time?: string | null
+  location?: string | null
+  locationDetail?: string | null
   description?: string | null
+  descriptionEn?: string | null
+  poster?: string | null
   url?: string | null
+  comingSoon?: boolean
+  status?: ActivityStatus
 }
 
 interface StaticTicketInput {
@@ -139,9 +147,17 @@ function normalizeStaticData(data: StaticDataShape): ActivitiesPayload {
     partnerName: String(p.partnerName ?? ''),
     partnerNameEn: p.partnerNameEn ?? null,
     eventName: String(p.eventName ?? ''),
+    eventNameEn: p.eventNameEn ?? null,
     date: p.date ?? null,
+    time: p.time ?? null,
+    location: p.location ?? null,
+    locationDetail: p.locationDetail ?? null,
     description: p.description ?? null,
+    descriptionEn: p.descriptionEn ?? null,
+    poster: p.poster ?? null,
     url: p.url ?? null,
+    comingSoon: Boolean(p.comingSoon),
+    status: p.status ?? (p.comingSoon ? 'coming_soon' : 'upcoming'),
   }))
 
   const tickets: TicketRecord[] = (data.tickets ?? []).map((t) => ({
