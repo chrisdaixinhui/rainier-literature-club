@@ -7,6 +7,7 @@ export interface ActivityRecord {
   subType?: string | null
   date?: string | null
   time?: string | null
+  endAt?: string | null
   location?: string | null
   locationDetail?: string | null
   description?: string | null
@@ -39,6 +40,7 @@ export interface PartnerRecord {
   eventNameEn?: string | null
   date?: string | null
   time?: string | null
+  endAt?: string | null
   location?: string | null
   locationDetail?: string | null
   description?: string | null

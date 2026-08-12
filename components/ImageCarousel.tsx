@@ -26,9 +26,26 @@ export default function ImageCarousel() {
     }
   }, [paused])
 
+  useEffect(() => {
+    if (!paused) return
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'ArrowLeft') {
+        event.preventDefault()
+        setCurrent((c) => (c - 1 + IMAGES.length) % IMAGES.length)
+      } else if (event.key === 'ArrowRight') {
+        event.preventDefault()
+        setCurrent((c) => (c + 1) % IMAGES.length)
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [paused])
+
   return (
     <div
-      style={{ position: 'relative', width: '100%', aspectRatio: '16/9', overflow: 'hidden', borderRadius: '4px' }}
+      style={{ position: 'relative', width: '100%', aspectRatio: '3/2', overflow: 'hidden', borderRadius: '4px' }}
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
     >
@@ -48,6 +65,48 @@ export default function ImageCarousel() {
             transition: 'opacity 0.8s ease-in-out',
           }}
         />
+      ))}
+
+      {[
+        { direction: 'previous', label: '上一张照片', side: 'left', icon: '‹' },
+        { direction: 'next', label: '下一张照片', side: 'right', icon: '›' },
+      ].map(({ direction, label, side, icon }) => (
+        <button
+          key={direction}
+          type="button"
+          aria-label={label}
+          onClick={() => {
+            setCurrent((c) => direction === 'previous'
+              ? (c - 1 + IMAGES.length) % IMAGES.length
+              : (c + 1) % IMAGES.length)
+          }}
+          style={{
+            position: 'absolute',
+            top: '50%',
+            [side]: '16px',
+            transform: 'translateY(-50%)',
+            width: '42px',
+            height: '42px',
+            display: 'grid',
+            placeItems: 'center',
+            padding: 0,
+            border: '1px solid rgba(255,255,255,0.45)',
+            borderRadius: '50%',
+            background: 'rgba(28,34,32,0.42)',
+            color: '#fff',
+            fontFamily: 'Arial, sans-serif',
+            fontSize: '34px',
+            fontWeight: 300,
+            lineHeight: 1,
+            cursor: 'pointer',
+            opacity: paused ? 1 : 0,
+            pointerEvents: paused ? 'auto' : 'none',
+            transition: 'opacity 0.25s ease, background 0.25s ease',
+            zIndex: 10,
+          }}
+        >
+          <span aria-hidden="true" style={{ transform: 'translateY(-1px)' }}>{icon}</span>
+        </button>
       ))}
 
       {/* Dot indicators */}

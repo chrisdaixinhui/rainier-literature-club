@@ -6,6 +6,7 @@ import type {
   PartnerRecord,
   TicketRecord,
 } from './types'
+import { resolveActivityState } from './activityStatus'
 
 const NOTION_VERSION = '2022-06-28'
 
@@ -22,7 +23,7 @@ interface NotionProp {
   url?: string | null
   number?: number | null
   checkbox?: boolean
-  date?: { start?: string | null } | null
+  date?: { start?: string | null; end?: string | null } | null
   files?: Array<{
     file?: { url?: string } | null
     external?: { url?: string } | null
@@ -108,20 +109,22 @@ function checkboxValue(page: NotionPage, names: string[]): boolean {
   return Boolean(getProp(page, names)?.checkbox)
 }
 
-function dateValue(page: NotionPage, names: string[]): { date: string | null; time: string | null } {
+function dateValue(page: NotionPage, names: string[]): {
+  date: string | null
+  time: string | null
+  rawStart: string | null
+  rawEnd: string | null
+} {
   const start = getProp(page, names)?.date?.start ?? null
-  if (!start) return { date: null, time: null }
+  const end = getProp(page, names)?.date?.end ?? null
+  if (!start) return { date: null, time: null, rawStart: null, rawEnd: end }
   const [datePart, timePart] = start.split('T')
-  return { date: datePart || null, time: timePart ? timePart.slice(0, 5) : null }
-}
-
-function mapStatus(value: string): ActivityStatus {
-  const s = value.trim().toLowerCase()
-  if (['past', '已完成', '往期', 'completed'].includes(s)) return 'past'
-  if (['coming soon', 'coming_soon', '即将上线', '草稿', 'draft'].includes(s)) {
-    return 'coming_soon'
+  return {
+    date: datePart || null,
+    time: timePart ? timePart.slice(0, 5) : null,
+    rawStart: start,
+    rawEnd: end,
   }
-  return 'upcoming'
 }
 
 interface CategoryMeta {
@@ -239,8 +242,13 @@ function normalizeNotionActivities(rows: NotionPage[]): ActivitiesPayload {
   for (const row of rows) {
     const isPartner = checkboxValue(row, ['是否友社活动', '友社活动', 'Partner Event'])
     const categoryMeta = resolveCategory(selectValue(row, ['分类', 'Category', '类目']))
-    const status = mapStatus(selectValue(row, ['状态', 'Status']))
-    const { date, time } = dateValue(row, ['开始时间', '日期', 'Date'])
+    const rawStatus = selectValue(row, ['状态', 'Status'])
+    const { date, time, rawStart, rawEnd } = dateValue(row, ['开始时间', '日期', 'Date'])
+    const separateEnd = dateValue(row, ['结束时间', 'End Time', '结束日期']).rawStart
+    const endAt = separateEnd ?? rawEnd
+    const resolvedState = resolveActivityState({ rawStatus, startDate: rawStart ?? date, endAt })
+    if (resolvedState === 'hidden') continue
+    const status: ActivityStatus = resolvedState
     const title = textValue(row, ['活动名称', '名称', 'Name', 'Title']) || '未命名活动'
     const description = textValue(row, ['简介', '描述', 'Description'])
     const poster = urlPropertyValue(row, ['海报图片 URL', 'Poster URL'])
@@ -257,6 +265,7 @@ function normalizeNotionActivities(rows: NotionPage[]): ActivitiesPayload {
       subType: selectValue(row, ['活动类型', 'Sub Type', '子分类']) || null,
       date,
       time,
+      endAt,
       location: textValue(row, ['地点', 'Location']) || null,
       locationDetail: textValue(row, ['地点详情', 'Location Detail']) || null,
       description: description || null,
@@ -270,6 +279,10 @@ function normalizeNotionActivities(rows: NotionPage[]): ActivitiesPayload {
     }
 
     if (isPartner) {
+      // Expired partner events disappear from the public site instead of
+      // entering Rainier Literature Society's archive.
+      if (status === 'past') continue
+
       partners.push({
         id: row.id,
         partnerName: textValue(row, ['友社名称', 'Partner Name', '友社']) || '友社',
@@ -278,6 +291,7 @@ function normalizeNotionActivities(rows: NotionPage[]): ActivitiesPayload {
         eventNameEn: activity.titleEn,
         date,
         time,
+        endAt,
         location: activity.location,
         locationDetail: activity.locationDetail,
         description: description || null,
