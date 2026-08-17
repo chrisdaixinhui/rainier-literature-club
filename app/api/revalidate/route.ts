@@ -8,5 +8,6 @@ export async function POST(request: Request) {
   }
 
   revalidateTag('activities', 'max')
+  revalidateTag('sentences', 'max')
   return Response.json({ ok: true, data: { revalidated: true } })
 }

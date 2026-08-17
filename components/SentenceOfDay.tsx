@@ -1,8 +1,10 @@
 import { connection } from 'next/server'
-import sentences from '@/data/sentences.json'
+import { getSentences } from '@/lib/sentences'
 
 async function getDailySentence() {
   await connection()
+  const sentences = await getSentences()
+  if (sentences.length === 0) return null
   const d = new Date()
   const seed = d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate()
   return sentences[seed % sentences.length]
@@ -10,6 +12,7 @@ async function getDailySentence() {
 
 export default async function SentenceOfDay() {
   const s = await getDailySentence()
+  if (!s) return null
   return (
     <section
       style={{
@@ -66,7 +69,7 @@ export default async function SentenceOfDay() {
           </p>
         )}
 
-        {/* Source — right-aligned */}
+        {/* Author and source — right-aligned */}
         <div style={{ textAlign: 'right' }}>
           <p
             style={{
@@ -76,7 +79,18 @@ export default async function SentenceOfDay() {
               letterSpacing: '0.1em',
             }}
           >
-            —— {s.source}
+            —— {s.author}
+          </p>
+          <p
+            style={{
+              fontFamily: 'var(--font-label)',
+              fontSize: '11px',
+              color: '#8FA499',
+              letterSpacing: '0.08em',
+              marginTop: '6px',
+            }}
+          >
+            {s.source}
           </p>
         </div>
 

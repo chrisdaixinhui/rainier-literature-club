@@ -229,20 +229,11 @@
 - **出处右下角**对齐（`—— 作者·出处`）
 
 **实现逻辑**：
-- 静态 JSON 语料库（`data/sentences.json`，现有 10 句）
+- Notion 句库（由 `NOTION_SENTENCE_DB_ID` 指定，按「是否启用」参与轮询）
 - 使用当天日期（年月日）作为随机种子，确保同一天所有访问者看到同一句
 - 每日零点自动更换
 
-**JSON 语料库结构**：
-```json
-[
-  {
-    "text": "人生不相见，动如参与商。",
-    "source": "杜甫《赠卫八处士》",
-    "translation": "Life keeps us apart like stars that never meet."
-  }
-]
-```
+**Notion 句库字段**：中文句子（Title）、英文翻译（Text）、作者（Text）、出处（Text）、是否启用（Checkbox）。
 
 **待补充**：语料库扩充至 50–100 句（Phase 1）
 
@@ -696,8 +687,7 @@ rainier-lit/
 ├── scripts/
 │   └── sync-images.mjs       # 图片同步脚本（npm run sync:images）
 ├── data/
-│   ├── activities.json       # 活动静态数据（兜底）
-│   └── sentences.json        # 语料库
+│   └── activities.json       # 活动静态数据（兜底）
 ├── vercel.json               # Vercel Cron 定时同步
 └── .env.example              # 环境变量模板
 ```
@@ -721,7 +711,7 @@ rainier-lit/
 - [x] 全局导航栏（sticky 吸顶 + 中英双语 Tab + 移动端 hamburger 全屏覆盖）+ Footer（三区块：品牌/关注 → 名片+Donate → Newsletter）
 - [x] About Us 页面：Hero 全屏雨效（Canvas，60 滴，0.08–0.12 透明度）+ 诗句逐行 fade-in 动画（Framer Motion）
 - [x] About Us 页面：Who We Are + Pull Quote + What We Offer（三栏）+ 往期风采集（活动花絮照片墙，Polaroid 风格）
-- [x] About Us 页面：Quote of the Day（居中排版，出处右下角，`data/sentences.json` 日期种子）
+- [x] About Us 页面：Quote of the Day（居中排版，作者与出处右下角，Notion 日期种子）
 - [x] 活动页：三 Tab 结构（即将举行 / 全部活动 / 友社推荐），含分类横向切换、accordion 展开、event row hover 变暗效果
 - [x] 支持我们页：双档票价（普通票 + 支持者票）+ 周边商品悬停预览 + Donate 区块占位
 - [x] 订阅 Modal（邮箱输入 + Context 全局控制）
@@ -823,7 +813,7 @@ rainier-lit/
 | `app/api/sync-images/route.ts` | ✅ | 手动触发图片同步 |
 | `scripts/sync-images.mjs` | ✅ | `npm run sync:images` 同步脚本 |
 | `vercel.json` | ✅ | Vercel Cron（每 10 分钟同步图片） |
-| `data/sentences.json` | ✅ | 10 句语料（兜底，待扩充至 50–100） |
+| `NOTION_SENTENCE_DB_ID` | ✅ | 每日一句 Notion 句库 |
 | `data/activities.json` | ✅ | 活动静态数据（兜底） |
 
 ### 实际色彩 Token

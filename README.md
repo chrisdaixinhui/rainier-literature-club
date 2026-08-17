@@ -37,7 +37,7 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/bui
 
 ## 内容管理（Notion CMS）
 
-活动内容以 Notion 数据库为数据源，网站每 10 分钟自动重新拉取；Notion 未配置或不可用时，自动回退到 `data/activities.json` 的静态数据。
+活动内容以 Notion 数据库为数据源，网站每 10 分钟自动重新拉取；Notion 未配置或不可用时，自动回退到 `data/activities.json` 的静态数据。每日一句同样从 Notion 句库读取，旧的 `data/sentences.json` 已移除。
 
 ### 环境变量
 
@@ -46,6 +46,7 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/bui
 ```bash
 NOTION_API_KEY=secret_xxx
 NOTION_ACTIVITY_DB_ID=your-database-id
+NOTION_SENTENCE_DB_ID=your-sentence-database-id
 ADMIN_PASSWORD=your-admin-password
 CLOUDINARY_CLOUD_NAME=your-cloud-name
 CLOUDINARY_API_KEY=your-api-key
@@ -78,7 +79,18 @@ CRON_SECRET=your-cron-secret
 | 是否置顶 | Checkbox | 勾选后进入"即将举行"主推 |
 | 是否友社活动 | Checkbox | 勾选后进入"友社推荐" |
 | 友社名称 | Text | 友社活动时填写 |
-| 友社链接 | URL | 可选，友社活动外链 |
+
+### Notion 数据库字段（每日一句）
+
+`NOTION_SENTENCE_DB_ID` 指向标题为「每日一句」的数据库。网站只读取「是否启用」为开启的条目，并按日期在启用条目中轮询；每 10 分钟重新拉取一次。
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| 中文句子 | Title | 页面显示的中文句子 |
+| 英文翻译 | Text | 中文句子的英文翻译 |
+| 作者 | Text | 作者署名 |
+| 出处 | Text | 作品、演讲或其他出处 |
+| 是否启用 | Checkbox | 关闭后不参与每日轮询 |
 
 ### 手动刷新
 
