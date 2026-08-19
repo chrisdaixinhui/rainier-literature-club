@@ -53,7 +53,24 @@ CLOUDINARY_API_KEY=your-api-key
 CLOUDINARY_API_SECRET=your-api-secret
 CLOUDINARY_FOLDER=rainier/activities
 CRON_SECRET=your-cron-secret
+MAILCHIMP_API_KEY=your-mailchimp-api-key
+MAILCHIMP_AUDIENCE_ID=your-mailchimp-audience-id
+MAILCHIMP_SERVER_PREFIX=usXX
 ```
+
+### Mailchimp 邮件订阅
+
+首页和页脚的「订阅 Subscribe」按钮会打开订阅弹窗。用户提交邮箱后，网站通过 `app/api/subscribe/route.ts` 调用 Mailchimp Marketing API，将联系人以 `pending` 状态加入 Audience；用户需要点击 Mailchimp 发出的确认邮件才能完成订阅。
+
+首次配置：
+
+1. 在 Mailchimp 创建一个主 Audience，并在 Audience 设置中确认默认发件人信息。
+2. 在 `Account & billing` → `Extras` → `API keys` 创建 API Key。
+3. 从浏览器地址或 API Key 末尾取得 Server Prefix，例如 `us21`。
+4. 在 `Audience` → `Settings` → `Audience name and defaults` 找到 Audience ID。
+5. 将三个值填入本地 `.env.local` 和 Vercel 项目的 Environment Variables，然后重新部署。
+
+API Key 只放在服务端环境变量中，不要使用 `NEXT_PUBLIC_` 前缀，也不要提交到 Git。Mailchimp 的 Marketing API 不支持把 API Key 放在浏览器端调用；服务端 Route Handler 会保护这个密钥。
 
 ### Notion 数据库字段（活动）
 

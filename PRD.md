@@ -1,9 +1,9 @@
 # 雨山前 Rainier Literature Society — 网站产品设计文档
 
-> **文档版本**：v0.8
+> **文档版本**：v0.9
 > **创建日期**：2026-05-12  
-> **更新日期**：2026-08-12
-> **状态**：✅ Phase 0 完成 · Phase 1 内容填充阶段 · Phase 2 Notion CMS 已接入  
+> **更新日期**：2026-08-19
+> **状态**：✅ Phase 0 完成 · 🟡 Phase 1 内容与上线准备中 · ✅ Phase 2 核心自动化已完成 · ⏳ 尚未部署
 > **负责人**：Chris Dai
 
 ---
@@ -588,10 +588,10 @@ Support Us · 支持我们
 | 置顶 · 友社推荐 | 每 2–4 周，并在活动过期后清理 | Notion 数据库录入（静态 JSON 兜底） |
 | 票务信息 | 每次活动前更新 | Notion 数据库录入（静态 JSON 兜底） |
 | 海报图片 | 每次活动前更新 | Notion「海报图片」字段拖图 → 自动转存 Cloudinary → 写回永久 URL |
-| 每日一句语料库 | 按需补充（建议每季度） | 静态 JSON（暂未迁移） |
-| 邮件 Newsletter | 每周一次 | Mailchimp 模板编辑（API 待接入） |
+| 每日一句语料库 | 按需补充（建议每季度） | Notion 句库维护，按启用状态和日期种子展示 |
+| 邮件 Newsletter | 每周一次 | Mailchimp Audience + 网站订阅 API（本地已接入；Campaign 模板待建立） |
 
-### 7.2 Notion 活动数据库结构（Phase 2）
+### 7.2 Notion 活动数据库结构（已接入）
 
 | 字段 | 类型 | 说明 |
 |------|------|------|
@@ -635,7 +635,7 @@ Support Us · 支持我们
 | 内容数据源 | **Notion API**（已接入，静态 JSON 作为兜底） | 运营者直接维护 Notion，网站每 10 分钟自动刷新 |
 | 语言方案 | **双语同时显示**，无 i18n 库 | 中英文各自成段，零配置成本 |
 | 电商 | **不接入**（Phase 0–1）| 票务跳转 Eventbrite 外链；Shopify 推迟至 Phase 2+ 视需求决定 |
-| 邮件营销 | **Mailchimp** | Phase 1 接入 API；Phase 0 先做 Modal UI |
+| 邮件营销 | **Mailchimp Marketing API** | Modal、服务端订阅 Route Handler 和本地环境配置已完成；待完成确认邮件端到端验收 |
 | 图片存储 | **Cloudinary**（已接入自动转存） | Notion 拖图 → 自动上传 Cloudinary → 写回永久 URL |
 | 图片优化 | Cloudinary CDN | 当前使用原生 `<img>`，后续可迁移 next/image |
 | 部署 | **Vercel** | 免费，CI/CD 自动化，全球 CDN |
@@ -663,7 +663,8 @@ rainier-lit/
 │   │   └── page.tsx          # 支持我们页（服务端取数入口）
 │   ├── api/
 │   │   ├── revalidate/       # 手动刷新活动缓存
-│   │   └── sync-images/      # 手动触发 Notion 图片转存
+│   │   ├── sync-images/      # 手动触发 Notion 图片转存
+│   │   └── subscribe/        # Mailchimp 邮件订阅（服务端保护 API Key）
 │   └── layout.tsx            # 全局布局（导航 + Footer）
 ├── components/
 │   ├── ActivitiesClient.tsx  # 活动页客户端组件（单页活动流、满幅置顶卡片、往期筛选）
@@ -682,6 +683,7 @@ rainier-lit/
 │   ├── content.ts            # 统一内容出口（Notion → JSON 兜底 + 缓存）
 │   ├── cloudinary.ts         # Cloudinary 上传
 │   ├── notionSync.ts         # Notion 图片自动转存
+│   ├── sentences.ts          # Notion 每日一句数据层与日期轮询
 │   ├── admin.ts              # 管理接口鉴权
 │   └── types.ts              # 共享类型
 ├── scripts/
@@ -705,6 +707,8 @@ rainier-lit/
 
 ## 9. 开发路线图
 
+> **进度说明（2026-08-19）**：各 Phase 并非严格串行。内容自动化能力已在内容填充完成前提前开发，因此 Phase 2 的核心技术工作已经完成，当前主要工作仍集中在 Phase 1 的真实内容补齐、第三方服务验收和正式上线准备。
+
 ### Phase 0：骨架搭建 ✅ 已完成（2026-05-16）
 
 - [x] 初始化 Next.js 16 项目，配置 Tailwind v4 + 四套字体（Noto Serif SC / Noto Sans SC / Playfair Display / Inter）
@@ -717,38 +721,48 @@ rainier-lit/
 - [x] 订阅 Modal（邮箱输入 + Context 全局控制）
 - [x] 响应式适配（移动端优先，所有页面）
 - [x] 极简杂志风视觉全站重构（诗意克制色系，衬线/无衬线双字体体系，全局微交互 duration-500）
-- [ ] 部署至 Vercel，绑定域名（**待完成**）
 
-### Phase 1：内容填充（当前阶段）
+### Phase 1：内容填充与上线准备 🟡 当前阶段
 
 - [x] 活动内容迁移至 Notion 维护（含海报自动转存；票价/报名链接仍待补）
 - [x] 活动页由三 Tab 改为单页活动流（雨山前置顶 → 友社置顶 → 往期活动）
 - [x] 替换往期风采集真实活动照片（8 张）
+- [x] 每日一句迁移至 Notion 句库（按「是否启用」筛选，并按日期种子轮询）
+- [x] 注册 Mailchimp Free Plan，创建 `Rainier Literature Club` Audience
+- [x] 接入 Mailchimp Marketing API：订阅 Modal → `/api/subscribe` → Audience（服务端环境变量保护 API Key）
+- [ ] 完成 Mailchimp 端到端验收：新邮箱进入 `pending` → 收到确认邮件 → 点击后变为 `subscribed`
+- [ ] 建立第一版 Newsletter Campaign 模板与发件人/回复地址规范
 - [ ] 填入真实票价（普通票 + 支持者票）+ Eventbrite 报名链接（当前为测试数据）
-- [ ] 接入 Mailchimp 邮件订阅 API（现为 UI 占位）
-- [ ] 每日一句语料库扩充至 50–100 句（现 10 句）
+- [ ] 每日一句语料库扩充至 50–100 句
 - [ ] 捐赠 Section 正式设计（文案、接收平台、档位）
 - [ ] SEO 基础配置（部分完成：layout 已有 title/description/OG；缺每页 meta、OG 图片、sitemap）
 - [ ] 社媒账号链接填入 Footer（Instagram / 小红书 / 微信公众号）
-- [ ] 部署至 Vercel，绑定正式域名
+- [ ] 完成本地发布前验收（桌面端/移动端、表单、活动归档、图片同步）
+- [ ] 将代码推送至团队 Git 仓库，部署至 Vercel
+- [ ] 在 Vercel 配置 Notion、Cloudinary、Mailchimp 和 Cron 环境变量
+- [ ] 绑定正式域名并完成生产环境验收
 
-### Phase 2：内容自动化（+2–4 周）
+### Phase 2：内容自动化 ✅ 核心能力已完成
 
 - [x] Notion API 接入，活动数据动态拉取（含 10 分钟缓存刷新 + 手动 revalidate）
-- [x] Notion 图片自动转存 Cloudinary（新增，2026-08-10）
+- [x] Notion 每日一句数据库接入，移除本地静态句库依赖
+- [x] Notion 图片转存 Cloudinary 的脚本、API 与永久 URL 回写（2026-08-10）
+- [x] `vercel.json` 配置每 10 分钟调用图片同步接口
 - [x] 往期回顾分类筛选上线（活动页分类筛选已实现）
 - [x] 将现有友社推荐 Tab 合并到单页活动流的置顶区域
 - [x] 接入 Notion「结束时间」字段，实现活动过期自动流转（未填写时按开始日期次日西雅图零点归档）
+- [ ] Vercel 部署后验证 Cron 自动同步实际运行（当前仅完成配置与本地手动验证）
 - [ ] 接入 Notion「是否联合活动」字段，使指定友社活动过期后可进入往期档案
 - [ ] 周边商品页面（静态展示 + 外链，当前为支持页内区块）
 
-### Phase 3：增长功能（后续迭代）
+### Phase 3：上线后增长功能（后续迭代）
 
-- [ ] 语料库管理后台（CMS 化）
-- [ ] Newsletter 模板标准化
-- [ ] SEO 深度优化（sitemap、结构化数据）
+- [ ] Newsletter 自动化与用户分群（欢迎邮件、活动偏好、活跃度标签）
+- [ ] SEO 深度优化（结构化数据、活动页面分享卡片）
 - [ ] 无障碍优化（WCAG AA）
 - [ ] Lighthouse 性能调优
+- [ ] 运营数据看板（订阅增长、邮件打开/点击、活动报名转化）
+- [ ] 团队账号与权限交接文档（Notion / Cloudinary / Mailchimp / Vercel / 域名）
 
 ---
 
@@ -780,7 +794,7 @@ rainier-lit/
 
 - [ ] 社媒账号链接（Instagram、小红书、微信公众号）
 - [ ] 域名注册确认（建议 rainierlit.com）
-- [ ] Mailchimp 账号注册
+- [x] Mailchimp 账号注册与 Audience 创建
 
 ### 活动分类确认
 
