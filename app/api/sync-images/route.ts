@@ -1,5 +1,6 @@
 import { requireAdmin } from '@/lib/admin'
 import { syncActivityPosters } from '@/lib/notionSync'
+import { revalidateTag } from 'next/cache'
 
 async function handle(request: Request) {
   const auth = requireAdmin(request)
@@ -9,6 +10,9 @@ async function handle(request: Request) {
 
   try {
     const result = await syncActivityPosters()
+    if (result.synced > 0) {
+      revalidateTag('activities', 'max')
+    }
     return Response.json({ ok: true, data: result })
   } catch (err) {
     return Response.json(

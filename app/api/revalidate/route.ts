@@ -1,4 +1,4 @@
-import { revalidateTag } from 'next/cache'
+import { revalidatePath, revalidateTag } from 'next/cache'
 import { requireAdmin } from '@/lib/admin'
 
 export async function POST(request: Request) {
@@ -9,5 +9,7 @@ export async function POST(request: Request) {
 
   revalidateTag('activities', 'max')
   revalidateTag('sentences', 'max')
+  revalidatePath('/')
+  revalidatePath('/activities')
   return Response.json({ ok: true, data: { revalidated: true } })
 }

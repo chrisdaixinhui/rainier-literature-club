@@ -12,6 +12,7 @@ interface PinnedCardData {
   date?: string | null
   time?: string | null
   location?: string | null
+  locationDetail?: string | null
   description?: string | null
   descriptionEn?: string | null
   poster?: string | null
@@ -25,6 +26,28 @@ interface PastActivity {
   categoryId: string
   categoryName: string
   categoryColor: string
+}
+
+const PAST_POSTER_WIDTHS = [320, 480, 640] as const
+const CLOUDINARY_UPLOAD_PATH = '/image/upload/'
+
+function cloudinaryPastPosterUrl(src: string, width: number): string {
+  try {
+    const url = new URL(src)
+    if (url.hostname !== 'res.cloudinary.com' || !url.pathname.includes(CLOUDINARY_UPLOAD_PATH)) return src
+
+    const transformation = `f_auto,q_auto:good,c_fill,g_center,ar_1250:1667,w_${width}`
+    url.pathname = url.pathname.replace(CLOUDINARY_UPLOAD_PATH, `${CLOUDINARY_UPLOAD_PATH}${transformation}/`)
+    return url.toString()
+  } catch {
+    return src
+  }
+}
+
+function pastPosterSrcSet(src: string): string | undefined {
+  const urls = PAST_POSTER_WIDTHS.map((width) => cloudinaryPastPosterUrl(src, width))
+  if (urls.every((url) => url === src)) return undefined
+  return urls.map((url, index) => `${url} ${PAST_POSTER_WIDTHS[index]}w`).join(', ')
 }
 
 function ImgPlaceholder({ label, style }: { label: string; style?: React.CSSProperties }) {
@@ -114,9 +137,9 @@ function PinnedActivityCard({ item }: { item: PinnedCardData }) {
   const accent = item.partner ? '#65756E' : '#2E463D'
   const actionLabel = item.partner
     ? '了解详情 · Learn More'
-    : item.comingSoon
-      ? '预约提醒 · Notify Me'
-      : '立即报名 · Register'
+    : '报名活动 · Register'
+  const schedule = [item.date, item.time].filter(Boolean).join(' ')
+  const place = [item.location, item.locationDetail].filter(Boolean).join(' · ')
 
   return (
     <article
@@ -216,28 +239,18 @@ function PinnedActivityCard({ item }: { item: PinnedCardData }) {
               {item.titleEn}
             </p>
           )}
-        </div>
-
-        <div
-          className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-4"
-          style={{ padding: '18px 22px', border: '1px solid #E6E2DA', background: '#F9F7F4' }}
-        >
-          <div>
-            <p style={{ fontFamily: 'var(--font-label)', fontSize: '10px', letterSpacing: '0.16em', color: '#8FA499', marginBottom: '6px' }}>
-              DATE · 日期
-            </p>
-            <p style={{ fontFamily: 'var(--font-sans)', fontSize: '14px', color: '#1C2220' }}>
-              {item.date ? `${item.date}${item.time ? ` ${item.time}` : ''}` : '日期待定'}
-            </p>
-          </div>
-          <div>
-            <p style={{ fontFamily: 'var(--font-label)', fontSize: '10px', letterSpacing: '0.16em', color: '#8FA499', marginBottom: '6px' }}>
-              LOCATION · 地点
-            </p>
-            <p style={{ fontFamily: 'var(--font-sans)', fontSize: '14px', color: '#1C2220' }}>
-              {item.location || '地点待公布'}
-            </p>
-          </div>
+          <p
+            style={{
+              marginTop: '14px',
+              fontFamily: 'var(--font-label)',
+              fontSize: '11px',
+              lineHeight: 1.7,
+              letterSpacing: '0.08em',
+              color: '#68736E',
+            }}
+          >
+            {schedule || '时间待公布'} · {place || '地点待公布'}
+          </p>
         </div>
 
         <Paragraphs text={item.description} gap={18} />
@@ -249,13 +262,17 @@ function PinnedActivityCard({ item }: { item: PinnedCardData }) {
           />
         )}
 
-        {hasUsableUrl(item.href) && (
-          <div style={{ marginTop: '4px' }}>
+        <div style={{ marginTop: '4px' }}>
+          {hasUsableUrl(item.href) ? (
             <a href={item.href} className={item.partner ? 'btn-outline' : 'btn-filled'} target="_blank" rel="noreferrer">
               {actionLabel}
             </a>
-          </div>
-        )}
+          ) : (
+            <span className="btn-outline" aria-disabled="true" style={{ cursor: 'not-allowed', opacity: 0.5 }}>
+              {item.partner ? '详情即将开放' : '报名即将开放'}
+            </span>
+          )}
+        </div>
       </div>
     </article>
   )
@@ -271,119 +288,117 @@ function EventRow({
   categoryColor: string
 }) {
   const [open, setOpen] = useState(false)
+  const detailsId = `event-details-${event.id}`
+  const toggleOpen = () => setOpen((value) => !value)
 
   return (
-    <article className="event-row" style={{ borderBottom: '1px solid #E6E2DA', overflow: 'hidden' }}>
-      <button
-        type="button"
-        aria-expanded={open}
-        onClick={() => setOpen((value) => !value)}
-        style={{
-          display: 'grid',
-          gridTemplateColumns: '35% 1fr',
-          width: '100%',
-          padding: 0,
-          border: 0,
-          background: 'transparent',
-          textAlign: 'left',
-          cursor: 'pointer',
-          color: 'inherit',
-        }}
-      >
-        {event.poster ? (
-          <div style={{ position: 'relative', aspectRatio: '1250 / 1667', minHeight: '160px', overflow: 'hidden' }}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={event.poster}
-              alt={`${event.title} 活动海报`}
-              loading="lazy"
-              style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
-            />
-          </div>
-        ) : (
-          <ImgPlaceholder label={`海报 · ${event.title}`} style={{ aspectRatio: '1250 / 1667', minHeight: '160px' }} />
-        )}
-
-        <div
-          className="flex flex-col justify-center"
-          style={{ padding: '24px clamp(16px, 4vw, 32px)' }}
+    <article className={`event-row ${open ? 'is-open' : ''}`} style={{ borderBottom: '1px solid #E6E2DA', overflow: 'hidden' }}>
+      <div className="event-row-layout">
+        <button
+          type="button"
+          className="event-row-poster-toggle"
+          aria-expanded={open}
+          aria-controls={detailsId}
+          aria-label={`${open ? '收起' : '展开'} ${event.title} 活动详情`}
+          onClick={toggleOpen}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
-            <span
-              style={{
-                fontFamily: 'var(--font-label)',
-                fontSize: '10px',
-                letterSpacing: '0.12em',
-                padding: '2px 8px',
-                color: categoryColor,
-                background: `${categoryColor}18`,
-              }}
-            >
-              {event.subType || categoryName}
-            </span>
-          </div>
-          <h3
-            style={{
-              fontFamily: 'var(--font-serif)',
-              fontSize: 'clamp(15px, 2vw, 19px)',
-              fontWeight: 700,
-              color: '#1C2220',
-              lineHeight: 1.3,
-              marginBottom: '8px',
-            }}
+          {event.poster ? (
+            <div className="event-row-poster">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={cloudinaryPastPosterUrl(event.poster, 640)}
+                srcSet={pastPosterSrcSet(event.poster)}
+                sizes="(max-width: 640px) 35vw, 320px"
+                alt={`${event.title} 活动海报`}
+                loading="lazy"
+                decoding="async"
+                style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+              />
+            </div>
+          ) : (
+            <ImgPlaceholder label={`海报 · ${event.title}`} style={{ aspectRatio: '1250 / 1667', minHeight: '160px' }} />
+          )}
+        </button>
+
+        <div className="event-row-copy">
+          <button
+            type="button"
+            className="event-row-summary-toggle"
+            aria-expanded={open}
+            aria-controls={detailsId}
+            onClick={toggleOpen}
           >
-            {event.title}
-          </h3>
-          {event.date && (
-            <p style={{ fontFamily: 'var(--font-label)', fontSize: '11px', color: '#8FA499', letterSpacing: '0.08em' }}>
-              {event.date}
-            </p>
-          )}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '16px' }}>
-            <span style={{ fontFamily: 'var(--font-label)', fontSize: '10px', color: '#8FA499', letterSpacing: '0.12em' }}>
-              {open ? '收起' : '展开详情'}
-            </span>
-            <svg
-              width="12"
-              height="12"
-              viewBox="0 0 12 12"
-              fill="none"
-              stroke="#8FA499"
-              strokeWidth="1.2"
-              style={{ transform: open ? 'rotate(180deg)' : 'rotate(0)', transition: 'transform 0.3s' }}
-            >
-              <polyline points="2,4 6,8 10,4" />
-            </svg>
-          </div>
-        </div>
-      </button>
-
-      <div className={`accordion-content ${open ? 'open' : ''}`}>
-        <div
-          style={{
-            background: '#F9F7F4',
-            borderTop: '1px solid #E6E2DA',
-            padding: '32px clamp(24px, 4vw, 40px)',
-          }}
-        >
-          <Paragraphs text={event.description} gap={14} style={{ maxWidth: '62ch', marginBottom: event.reviewUrl ? '20px' : 0 }} />
-          {hasUsableUrl(event.reviewUrl) && (
-            <a
-              href={event.reviewUrl}
-              target="_blank"
-              rel="noreferrer"
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
+              <span
+                style={{
+                  fontFamily: 'var(--font-label)',
+                  fontSize: '10px',
+                  letterSpacing: '0.12em',
+                  padding: '2px 8px',
+                  color: categoryColor,
+                  background: `${categoryColor}18`,
+                }}
+              >
+                {event.subType || categoryName}
+              </span>
+            </div>
+            <h3
               style={{
-                fontFamily: 'var(--font-label)',
-                fontSize: '12px',
-                color: '#2E463D',
-                letterSpacing: '0.08em',
-                textDecoration: 'underline',
-                textUnderlineOffset: '3px',
+                fontFamily: 'var(--font-serif)',
+                fontSize: 'clamp(15px, 2vw, 19px)',
+                fontWeight: 700,
+                color: '#1C2220',
+                lineHeight: 1.3,
+                marginBottom: '8px',
               }}
             >
-              查看活动回顾 →
-            </a>
-          )}
+              {event.title}
+            </h3>
+            {event.date && (
+              <p style={{ fontFamily: 'var(--font-label)', fontSize: '11px', color: '#8FA499', letterSpacing: '0.08em' }}>
+                {event.date}
+              </p>
+            )}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '16px' }}>
+              <span style={{ fontFamily: 'var(--font-label)', fontSize: '10px', color: '#8FA499', letterSpacing: '0.12em' }}>
+                {open ? '收起' : '展开详情'}
+              </span>
+              <svg
+                width="12"
+                height="12"
+                viewBox="0 0 12 12"
+                fill="none"
+                stroke="#8FA499"
+                strokeWidth="1.2"
+                style={{ transform: open ? 'rotate(180deg)' : 'rotate(0)', transition: 'transform 0.3s' }}
+              >
+                <polyline points="2,4 6,8 10,4" />
+              </svg>
+            </div>
+          </button>
+
+          <div id={detailsId} className={`accordion-content ${open ? 'open' : ''}`}>
+            <div className="event-row-details">
+              <Paragraphs text={event.description} gap={14} style={{ marginBottom: event.reviewUrl ? '20px' : 0 }} />
+              {hasUsableUrl(event.reviewUrl) && (
+                <a
+                  href={event.reviewUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  style={{
+                    fontFamily: 'var(--font-label)',
+                    fontSize: '12px',
+                    color: '#2E463D',
+                    letterSpacing: '0.08em',
+                    textDecoration: 'underline',
+                    textUnderlineOffset: '3px',
+                  }}
+                >
+                  查看活动回顾 →
+                </a>
+              )}
+            </div>
+          </div>
         </div>
       </div>
     </article>
@@ -399,6 +414,7 @@ function activityToPinnedCard(event: ActivityRecord): PinnedCardData {
     date: event.date,
     time: event.time,
     location: event.location,
+    locationDetail: event.locationDetail,
     description: event.description,
     descriptionEn: event.descriptionEn,
     poster: event.poster,
@@ -417,6 +433,7 @@ function partnerToPinnedCard(partner: PartnerRecord): PinnedCardData {
     date: partner.date,
     time: partner.time,
     location: partner.location,
+    locationDetail: partner.locationDetail,
     description: partner.description,
     descriptionEn: partner.descriptionEn,
     poster: partner.poster,

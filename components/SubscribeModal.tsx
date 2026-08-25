@@ -1,12 +1,36 @@
 'use client'
+
+import Image from 'next/image'
 import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react'
 import { useModal } from '@/context/ModalContext'
+
+type SubscribeStatus = 'idle' | 'submitting' | 'success' | 'error'
+
+function PostcardSender() {
+  return (
+    <div className="subscribe-postcard-from">
+      <span>FROM:</span>
+      <div className="subscribe-postcard-logo">
+        <Image
+          src="/rainier-logo-horizontal-black.png"
+          alt="雨山前 Rainier Literature Society"
+          width={3479}
+          height={1111}
+          loading="eager"
+          sizes="(max-width: 700px) 180px, 220px"
+        />
+      </div>
+    </div>
+  )
+}
 
 export default function SubscribeModal() {
   const { isOpen, closeModal } = useModal()
   const inputRef = useRef<HTMLInputElement>(null)
+  const modalRef = useRef<HTMLElement>(null)
+  const previousFocusRef = useRef<HTMLElement | null>(null)
   const [email, setEmail] = useState('')
-  const [status, setStatus] = useState<'idle' | 'submitting' | 'success' | 'error'>('idle')
+  const [status, setStatus] = useState<SubscribeStatus>('idle')
   const [message, setMessage] = useState('')
 
   const handleClose = useCallback(() => {
@@ -17,24 +41,60 @@ export default function SubscribeModal() {
   }, [closeModal])
 
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') handleClose() }
-    document.addEventListener('keydown', onKey)
-    return () => document.removeEventListener('keydown', onKey)
-  }, [handleClose])
+    if (!isOpen) return
+
+    previousFocusRef.current = document.activeElement instanceof HTMLElement
+      ? document.activeElement
+      : null
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        handleClose()
+        return
+      }
+
+      if (event.key !== 'Tab') return
+
+      const focusableElements = modalRef.current?.querySelectorAll<HTMLElement>(
+        'button:not(:disabled), input:not(:disabled), [href], [tabindex]:not([tabindex="-1"])',
+      )
+
+      if (!focusableElements?.length) return
+
+      const firstElement = focusableElements[0]
+      const lastElement = focusableElements[focusableElements.length - 1]
+
+      if (event.shiftKey && document.activeElement === firstElement) {
+        event.preventDefault()
+        lastElement.focus()
+      } else if (!event.shiftKey && document.activeElement === lastElement) {
+        event.preventDefault()
+        firstElement.focus()
+      }
+    }
+
+    document.addEventListener('keydown', onKeyDown)
+    return () => {
+      document.removeEventListener('keydown', onKeyDown)
+      previousFocusRef.current?.focus()
+    }
+  }, [handleClose, isOpen])
 
   useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = 'hidden'
-      setTimeout(() => inputRef.current?.focus(), 100)
-    } else {
-      document.body.style.overflow = ''
+    if (!isOpen) return
+
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    const focusTimer = window.setTimeout(() => inputRef.current?.focus(), 180)
+
+    return () => {
+      window.clearTimeout(focusTimer)
+      document.body.style.overflow = previousOverflow
     }
-    return () => { document.body.style.overflow = '' }
   }, [isOpen])
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-
     if (status === 'submitting') return
 
     setStatus('submitting')
@@ -65,64 +125,116 @@ export default function SubscribeModal() {
 
   return (
     <div
-      className="fixed inset-0 z-[200] flex items-center justify-center bg-black/50 backdrop-blur-sm"
-      onClick={(e) => { if (e.target === e.currentTarget) handleClose() }}
+      className="subscribe-modal-backdrop"
+      onClick={(event) => {
+        if (event.target === event.currentTarget) handleClose()
+      }}
     >
-      <div
-        className="relative bg-off-white rounded-2xl p-10 md:p-12 w-[90vw] max-w-md text-center shadow-2xl"
-        style={{ fontFamily: 'var(--font-sans)' }}
+      <section
+        ref={modalRef}
+        className="subscribe-modal subscribe-postcard"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="subscribe-modal-title"
+        aria-describedby="subscribe-modal-description"
       >
         <button
+          type="button"
+          className="subscribe-modal-close"
           onClick={handleClose}
-          className="absolute top-4 right-5 text-mist hover:text-ink text-xl leading-none transition-colors"
-          aria-label="关闭"
+          aria-label="关闭订阅弹窗"
         >
-          ✕
+          <span aria-hidden="true" />
+          <span aria-hidden="true" />
         </button>
 
-        <div className="text-4xl mb-4">🌧️</div>
-
-        <h2 className="text-2xl font-bold text-ink mb-2" style={{ fontFamily: 'var(--font-serif)' }}>每周一封信</h2>
-        <p className="text-sm text-mist italic mb-1" style={{ fontFamily: 'var(--font-display)' }}>
-          Weekly Letter from 雨山前
-        </p>
-        <p className="text-sm text-ink/60 mt-3 mb-6 leading-relaxed">
-          活动预告 · 每日一句 · 一本书推荐
-        </p>
-
-        <form onSubmit={handleSubmit}>
-          <label htmlFor="subscribe-email" className="sr-only">邮箱地址</label>
-          <input
-            ref={inputRef}
-            id="subscribe-email"
-            name="email"
-            type="email"
-            value={email}
-            onChange={(event) => setEmail(event.target.value)}
-            placeholder="your@email.com"
-            autoComplete="email"
-            required
-            disabled={status === 'submitting' || status === 'success'}
-            className="w-full px-4 py-3 border border-mist/40 rounded-md text-sm outline-none focus:border-moss transition-colors mb-3 bg-white disabled:opacity-60"
+        <div className="subscribe-postcard-stamp" aria-hidden="true">
+          <Image
+            src="/newsletter-postcard-stamp.png"
+            alt=""
+            fill
+            loading="eager"
+            sizes="150px"
           />
-          <button
-            type="submit"
-            disabled={status === 'submitting' || status === 'success'}
-            className="w-full py-3 bg-moss text-white rounded-md text-sm font-medium hover:bg-moss-dark transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
-          >
-            {status === 'submitting' ? '提交中…' : status === 'success' ? '已提交' : '订阅 Subscribe'}
-          </button>
-        </form>
-        {message && (
-          <p
-            role="status"
-            className={`text-xs mt-3 ${status === 'error' ? 'text-red-700' : 'text-moss'}`}
-          >
-            {message}
-          </p>
+        </div>
+
+        <header className="subscribe-postcard-heading">
+          <p>RAINIER LETTERS · SEATTLE</p>
+          <h2 id="subscribe-modal-title">POSTCARD</h2>
+          <span>每周通讯 · WEEKLY LETTER</span>
+        </header>
+
+        {status === 'success' ? (
+          <div className="subscribe-postcard-body subscribe-postcard-success" role="status" aria-live="polite">
+            <div className="subscribe-postcard-message">
+              <p className="subscribe-postcard-eyebrow">FROM SEATTLE, WITH WORDS</p>
+              <h3>确认信已寄出。</h3>
+              <PostcardSender />
+            </div>
+            <div className="subscribe-postcard-recipient">
+              <p id="subscribe-modal-description">{message}</p>
+              <button type="button" className="subscribe-modal-return" onClick={handleClose}>
+                <span>继续浏览</span>
+                <span aria-hidden="true">→</span>
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="subscribe-postcard-body">
+            <div className="subscribe-postcard-message">
+              <p className="subscribe-postcard-eyebrow">A NOTE FROM RAINIER</p>
+              <p id="subscribe-modal-description" className="subscribe-postcard-copy">
+                把下一次相聚寄到你的邮箱。<br />活动预告、每日一句与阅读推荐，随周信抵达。
+              </p>
+              <PostcardSender />
+            </div>
+
+            <form
+              className="subscribe-postcard-recipient subscribe-modal-form"
+              onSubmit={handleSubmit}
+              aria-busy={status === 'submitting'}
+            >
+              <div className="subscribe-postcard-to">
+                <label htmlFor="subscribe-email">TO:</label>
+                <input
+                  ref={inputRef}
+                  id="subscribe-email"
+                  name="email"
+                  type="email"
+                  value={email}
+                  onChange={(event) => setEmail(event.target.value)}
+                  placeholder="your@email.com"
+                  autoComplete="email"
+                  required
+                  disabled={status === 'submitting'}
+                  aria-invalid={status === 'error'}
+                  aria-describedby={message ? 'subscribe-feedback' : 'subscribe-privacy'}
+                />
+              </div>
+
+              <div className="subscribe-postcard-address-lines" aria-hidden="true">
+                <span />
+                <span />
+              </div>
+
+              {message && (
+                <p id="subscribe-feedback" role="alert" className="subscribe-modal-feedback">
+                  {message}
+                </p>
+              )}
+
+              <div className="subscribe-postcard-send">
+                <p id="subscribe-privacy">只分享精心策划的内容，可随时取消订阅。</p>
+                <button type="submit" disabled={status === 'submitting'}>
+                  <span>{status === 'submitting' ? '寄送中…' : '寄出'}</span>
+                  <small>{status === 'submitting' ? 'SENDING' : 'SUBSCRIBE'}</small>
+                  <b aria-hidden="true">→</b>
+                </button>
+              </div>
+            </form>
+          </div>
         )}
-        {!message && <p className="text-xs text-ink/30 mt-3">我们只发精心策划的内容，无垃圾邮件。</p>}
-      </div>
+      </section>
     </div>
   )
 }

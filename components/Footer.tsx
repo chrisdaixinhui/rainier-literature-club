@@ -1,5 +1,24 @@
 import FooterClient from './FooterClient'
 import FooterYear from './FooterYear'
+import WechatAssistantButton from './WechatAssistantButton'
+
+const SOCIAL_LINKS = [
+  {
+    label: 'Instagram',
+    handle: '@yushanqianseattle',
+    href: 'https://www.instagram.com/yushanqianseattle/',
+  },
+  {
+    label: '小红书',
+    handle: '@雨山前 The Rainier',
+    href: 'https://www.xiaohongshu.com/user/profile/5d46a7c00000000011008a5e?xsec_token=ABNpxUtCE37whEhdNvzMjLz8oS2yhGLRBBEW-N0PY9pJY%3D&xsec_source=pc_search',
+  },
+  {
+    label: '微信公众号',
+    handle: '雨山前 Rainier Literature Society',
+    href: 'https://weixin.qq.com/r/mp/OxJLU-DEkK3vrbQw90cp',
+  },
+]
 
 export default function Footer() {
   return (
@@ -37,18 +56,24 @@ export default function Footer() {
               关注我们 · Follow
             </p>
             <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '14px' }}>
-              {['Instagram', '小红书', '微信公众号'].map(s => (
-                <li key={s}>
+              {SOCIAL_LINKS.map(({ label, handle, href }) => (
+                <li key={label}>
                   <a
-                    href="#"
+                    href={href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={`${label} ${handle}`}
                     className="text-muted hover:text-forest transition-all duration-500"
-                    style={{ fontFamily: 'var(--font-sans)', fontSize: '14px', textDecoration: 'none' }}
+                    style={{ display: 'flex', flexDirection: 'column', gap: '3px', fontFamily: 'var(--font-sans)', fontSize: '14px', textDecoration: 'none' }}
                   >
-                    {s}
+                    <span>{label}</span>
+                    <span style={{ fontSize: '12px', color: 'rgba(104,115,110,0.72)' }}>{handle}</span>
                   </a>
                 </li>
               ))}
             </ul>
+
+            <WechatAssistantButton />
           </div>
         </div>
 

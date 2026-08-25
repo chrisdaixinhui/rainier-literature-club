@@ -1,8 +1,11 @@
 import { Suspense } from 'react'
 import HeroRain from '@/components/HeroRain'
 import SentenceOfDay from '@/components/SentenceOfDay'
-import PhotoWall from '@/components/PhotoWall'
+import PhotoWall, { type GalleryPoster } from '@/components/PhotoWall'
 import ImageCarousel from '@/components/ImageCarousel'
+import UpcomingShowcase from '@/components/UpcomingShowcase'
+import { getActivitiesPayload } from '@/lib/content'
+import type { ActivitiesPayload } from '@/lib/types'
 
 const OFFERS = [
   {
@@ -25,134 +28,156 @@ const OFFERS = [
   },
 ]
 
-export default function AboutPage() {
+function getGalleryPosters(data: ActivitiesPayload): GalleryPoster[] {
+  const seen = new Set<string>()
+
+  return data.categories
+    .flatMap((category) => category.events.map((event) => ({
+      event,
+      categoryName: category.name,
+      categoryColor: category.color,
+    })))
+    .filter(({ event }) => event.status === 'past' && Boolean(event.poster))
+    .sort((a, b) => String(b.event.date ?? '').localeCompare(String(a.event.date ?? '')))
+    .flatMap(({ event, categoryName, categoryColor }) => {
+      const poster = event.poster
+      if (!poster || seen.has(poster)) return []
+      seen.add(poster)
+      return [{
+        id: event.id,
+        title: event.title,
+        date: event.date ?? null,
+        poster,
+        categoryName,
+        categoryColor,
+        subType: event.subType,
+        description: event.description,
+      }]
+    })
+}
+
+export default async function HomePage() {
+  const activities = await getActivitiesPayload()
+  const galleryPosters = getGalleryPosters(activities)
+
   return (
-    <>
+    <div className="home-page" data-od-id="home-page">
       <HeroRain />
 
-      {/* ── WHO WE ARE ── centered layout */}
-      <section id="about" className="px-4 md:px-6" style={{ paddingTop: '96px', paddingBottom: '96px', textAlign: 'center' }}>
-        <div style={{ maxWidth: '680px', margin: '0 auto' }}>
-          <p className="label-sm" style={{ marginBottom: '20px' }}>Who We Are · 我们是谁</p>
-          <h2
-            style={{
-              fontFamily: 'var(--font-serif)',
-              fontSize: 'clamp(30px, 5vw, 48px)',
-              fontWeight: 700,
-              lineHeight: 1.25,
-              letterSpacing: '-0.01em',
-              color: '#1C2220',
-              marginBottom: '36px',
-            }}
-          >
-            我们是谁
+      <section
+        className="home-manifesto home-section"
+        data-od-id="home-manifesto"
+        aria-labelledby="home-manifesto-title"
+      >
+        <div className="home-container">
+          <div className="home-section-meta">
+            <p>Manifesto · 宣言</p>
+            <span>01 / COMMON LANGUAGE</span>
+          </div>
+          <h2 id="home-manifesto-title" className="home-manifesto-title">
+            我们在异乡，<br />用中文重新彼此相认。<em>Meet again in Chinese.</em>
           </h2>
-
-          <p style={{ fontFamily: 'var(--font-sans)', fontSize: '16px', lineHeight: 1.9, color: 'rgba(28,34,32,0.72)', marginBottom: '20px' }}>
-            我们是雨山前书会，根植于西雅图，是一群热爱中文文学的理想主义者。我们想和你一起，在一个英语母语者的世界，坚持中文热爱，拾起阅读习惯，培养文学兴趣。
-          </p>
-          <p style={{ fontFamily: 'var(--font-sans)', fontSize: '16px', lineHeight: 1.9, color: 'rgba(28,34,32,0.72)', marginBottom: '32px' }}>
-            我们等待每一个愿意置身于书本世界里的你。
-          </p>
-
-          <p style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: '15px', color: '#68736E', lineHeight: 1.8 }}>
-            We are Rainier Literature Society, rooted in Seattle — a community of idealists who love Chinese literature.
-          </p>
-        </div>
-
-        {/* Photo — centered full-width banner */}
-        <div style={{ maxWidth: '900px', margin: '64px auto 0' }}>
-          <ImageCarousel />
         </div>
       </section>
 
-      {/* ── DIVIDER ── */}
-      <div className="mx-4 md:mx-6" style={{ borderTop: '1px solid #E6E2DA' }} />
+      <section
+        id="about"
+        className="home-about home-section"
+        data-od-id="home-about"
+        aria-labelledby="home-about-title"
+      >
+        <div className="home-container">
+          <div className="home-section-meta">
+            <p>Who We Are · 我们是谁</p>
+            <span>02 / ROOTED IN SEATTLE</span>
+          </div>
 
-      {/* ── PULL QUOTE ── */}
-      <section className="px-4 md:px-6" style={{ paddingTop: '80px', paddingBottom: '80px', textAlign: 'center', background: '#F2EDE4' }}>
-        <div style={{ maxWidth: '620px', margin: '0 auto' }}>
-          <p
-            className="pull-quote"
-            style={{ fontSize: 'clamp(20px, 3vw, 32px)', color: 'rgba(28,34,32,0.7)' }}
-          >
-            “大千世界里的芸芸众生，<br />都是自己故事里的主角。”
-          </p>
-          <p className="label-sm" style={{ marginTop: '28px' }}>雨山前书会 · Seattle</p>
+          <div className="home-about-grid">
+            <div className="home-about-heading">
+              <h2 id="home-about-title">我们是谁</h2>
+              <p>Rainier Literature Society</p>
+            </div>
+            <div className="home-about-copy">
+              <p>
+                我们是雨山前书会，根植于西雅图，是一群热爱中文文学的理想主义者。我们想和你一起，在一个英语母语者的世界，坚持中文热爱，拾起阅读习惯，培养文学兴趣。
+              </p>
+              <p>我们等待每一个愿意置身于书本世界里的你。</p>
+              <p className="home-about-copy-en">
+                We are Rainier Literature Society, rooted in Seattle — a community of idealists who love Chinese literature.
+              </p>
+            </div>
+          </div>
+
+          <div className="home-carousel-layout" data-od-id="home-community-carousel">
+            <div className="home-carousel-caption">
+              <span>FIELD NOTES</span>
+              <p>阅读发生在人与人之间。雨落下来的时候，我们仍在谈论一本书。</p>
+            </div>
+            <div className="home-carousel-frame">
+              <ImageCarousel />
+            </div>
+          </div>
         </div>
       </section>
 
-      {/* ── WHAT WE OFFER ── centered, typography-driven */}
-      <section className="px-4 md:px-6" style={{ paddingTop: '96px', paddingBottom: '96px', textAlign: 'center' }}>
-        <div style={{ maxWidth: '800px', margin: '0 auto' }}>
-          <p className="label-sm" style={{ marginBottom: '20px' }}>What We Offer · 我们提供什么</p>
-          <h2
-            style={{
-              fontFamily: 'var(--font-serif)',
-              fontSize: 'clamp(28px, 4vw, 42px)',
-              fontWeight: 700,
-              color: '#1C2220',
-              marginBottom: '64px',
-            }}
-          >
-            我们提供什么
-          </h2>
+      <section
+        className="home-offers home-section"
+        data-od-id="home-offers"
+        aria-labelledby="home-offers-title"
+      >
+        <div className="home-container">
+          <div className="home-section-meta">
+            <p>What We Offer · 我们提供什么</p>
+            <span>03 / READING AS PRACTICE</span>
+          </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '48px 32px' }}>
-            {OFFERS.map((o) => (
-              <div key={o.num} style={{ textAlign: 'center' }}>
-                <span
-                  style={{
-                    display: 'block',
-                    fontFamily: 'var(--font-display)',
-                    fontSize: '48px',
-                    fontWeight: 700,
-                    color: '#E6E2DA',
-                    lineHeight: 1,
-                    marginBottom: '20px',
-                  }}
-                >
-                  {o.num}
-                </span>
-                <h3 style={{ fontFamily: 'var(--font-serif)', fontSize: '18px', fontWeight: 700, color: '#1C2220', marginBottom: '6px' }}>
-                  {o.title}
-                </h3>
-                <p style={{ fontFamily: 'var(--font-label)', fontSize: '10px', letterSpacing: '0.14em', textTransform: 'uppercase', color: '#8FA499', marginBottom: '16px' }}>
-                  {o.titleEn}
-                </p>
-                <p style={{ fontFamily: 'var(--font-sans)', fontSize: '14px', lineHeight: 1.85, color: 'rgba(28,34,32,0.62)' }}>
-                  {o.desc}
-                </p>
-              </div>
+          <h2 id="home-offers-title" className="home-offers-title">我们提供什么</h2>
+          <div className="home-offer-list">
+            {OFFERS.map((offer) => (
+              <article
+                key={offer.num}
+                className="home-offer-row"
+                data-od-id={`home-offer-${offer.num}`}
+              >
+                <span className="home-offer-num">{offer.num}</span>
+                <div className="home-offer-name">
+                  <h3>{offer.title}</h3>
+                  <p>{offer.titleEn}</p>
+                </div>
+                <p className="home-offer-desc">{offer.desc}</p>
+              </article>
             ))}
           </div>
 
-          <div style={{ marginTop: '48px' }}>
-            <a
-              href="/activities"
-              className="btn-outline"
-              style={{ color: '#2E463D' }}
-            >
-              查看全部活动
-              <svg width="14" height="10" viewBox="0 0 14 10" fill="none" stroke="currentColor" strokeWidth="1.5">
-                <line x1="0" y1="5" x2="12" y2="5"/>
-                <polyline points="8,1 12,5 8,9"/>
-              </svg>
-            </a>
-          </div>
+          <a href="/activities" className="home-text-link">
+            <span>查看全部活动</span>
+            <span aria-hidden="true">↗</span>
+          </a>
         </div>
       </section>
 
-      {/* ── PHOTO WALL ── */}
-      <section className="px-4 md:px-6" style={{ paddingBottom: '80px', maxWidth: '900px', margin: '0 auto' }}>
-        <p className="label-sm" style={{ textAlign: 'center', marginBottom: '40px' }}>往期风采集 · Event Gallery</p>
-        <PhotoWall />
+      {activities.upcoming.length > 0 && (
+        <UpcomingShowcase activities={activities.upcoming} />
+      )}
+
+      <section
+        className="event-gallery-section home-gallery-section"
+        data-od-id="home-event-gallery"
+        aria-labelledby="event-gallery-heading"
+      >
+        <div className="home-container home-gallery-heading">
+          <div>
+            <p className="home-gallery-kicker">Past Gatherings · 往期风采集</p>
+            <h2 id="event-gallery-heading">把相聚装订成册</h2>
+          </div>
+        </div>
+        <div className="home-gallery-rule" aria-hidden="true" />
+        <PhotoWall events={galleryPosters} />
       </section>
 
-      {/* ── SENTENCE OF THE DAY ── */}
       <Suspense fallback={null}>
         <SentenceOfDay />
       </Suspense>
-    </>
+    </div>
   )
 }
