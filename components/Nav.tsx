@@ -1,6 +1,5 @@
 'use client'
 import { useState, useEffect } from 'react'
-import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useModal } from '@/context/ModalContext'
@@ -14,6 +13,7 @@ const NAV_LINKS = [
 
 export default function Nav() {
   const [menuOpen, setMenuOpen] = useState(false)
+  const [heroVisible, setHeroVisible] = useState(true)
   const { openModal } = useModal()
   const pathname = usePathname()
 
@@ -22,94 +22,73 @@ export default function Nav() {
     return () => clearTimeout(timer)
   }, [pathname])
 
-  const isActive = (href: string) =>
-    href === '/' || href === '/#about'
-      ? pathname === '/'
-      : pathname?.startsWith(href.split('#')[0]) ?? false
+  useEffect(() => {
+    if (pathname !== '/') {
+      const timer = setTimeout(() => setHeroVisible(true), 0)
+      return () => clearTimeout(timer)
+    }
+
+    const hero = document.querySelector<HTMLElement>('[data-od-id="home-hero"]')
+    if (!hero) return
+
+    const observer = new IntersectionObserver(
+      ([entry]) => setHeroVisible(entry.isIntersecting),
+      {
+        rootMargin: '-92px 0px 0px',
+        threshold: 0,
+      },
+    )
+
+    observer.observe(hero)
+    return () => observer.disconnect()
+  }, [pathname])
+
+  const isHeroNav = pathname === '/' && heroVisible
 
   return (
     <>
       <nav
-        className="flex items-center justify-between border-b"
+        className={`site-nav flex items-center justify-between border-b ${isHeroNav ? 'site-nav--hero' : ''}`}
         style={{
           position: 'fixed',
           top: 0,
           left: 0,
           right: 0,
           zIndex: 100,
-          minHeight: '64px',
-          padding: '12px clamp(16px, 3vw, 48px)',
-          background: 'rgba(250,248,245,0.85)',
-          borderColor: 'rgba(230,226,218,0.55)',
-          backdropFilter: 'blur(14px)',
-          WebkitBackdropFilter: 'blur(14px)',
+          background: '#1A241E',
+          borderColor: '#1A241E',
         }}
       >
         {/* Logo */}
         <Link href="/" className="flex items-center" aria-label="雨山前 Rainier Literature Society 首页">
-          <Image
-            src="/rainier-logo-horizontal-black.png"
-            alt="雨山前 Rainier Literature Society"
-            width={3479}
-            height={1111}
-            priority
+          <span
+            aria-hidden="true"
             style={{
-              width: 'auto',
+              display: 'block',
+              width: '119px',
               height: '38px',
-              objectFit: 'contain',
+              background: '#F2EBDF',
+              maskImage: "url('/rainier-logo-horizontal-black.png')",
+              maskPosition: 'center',
+              maskRepeat: 'no-repeat',
+              maskSize: 'contain',
+              WebkitMaskImage: "url('/rainier-logo-horizontal-black.png')",
+              WebkitMaskPosition: 'center',
+              WebkitMaskRepeat: 'no-repeat',
+              WebkitMaskSize: 'contain',
               transform: 'translateY(5px)',
             }}
           />
         </Link>
 
-        {/* Desktop nav */}
-        <div className="hidden md:flex items-center gap-8">
-          <ul className="flex items-center gap-7 list-none">
-            {NAV_LINKS.map(({ href, label, en }) => {
-              const active = isActive(href)
-              return (
-                <li key={`${href}-${en}`}>
-                  <Link
-                    href={href}
-                    className="flex flex-col items-center gap-[3px] group"
-                    style={{ textDecoration: 'none' }}
-                  >
-                    <span
-                      style={{
-                        fontFamily: 'var(--font-serif)',
-                        fontSize: '14px',
-                        color: active ? '#2E463D' : '#1C2220',
-                        fontWeight: active ? 600 : 400,
-                        transition: 'color 0.5s ease-in-out',
-                      }}
-                    >
-                      {label}
-                    </span>
-                    <span
-                      style={{
-                        fontFamily: 'var(--font-label)',
-                        fontSize: '8px',
-                        letterSpacing: '0.22em',
-                        textTransform: 'uppercase',
-                        color: active ? '#2E463D' : '#8FA499',
-                        transition: 'color 0.5s ease-in-out',
-                      }}
-                    >
-                      {en}
-                    </span>
-                  </Link>
-                </li>
-              )
-            })}
-          </ul>
-
+        <div className="hidden md:flex items-center">
           {/* Subscribe CTA */}
           <button
             onClick={openModal}
             className="flex items-center gap-1.5 cursor-pointer active:scale-[0.97] active:translate-y-[1px]"
             style={{
-              background: '#2E463D',
-              color: '#ffffff',
+              background: '#F2EBDF',
+              color: '#1A241E',
               fontFamily: 'var(--font-label)',
               fontSize: '12px',
               letterSpacing: '0.08em',
@@ -118,8 +97,6 @@ export default function Nav() {
               border: 'none',
               transition: 'all 0.5s ease-in-out',
             }}
-            onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = '#3a5a4e' }}
-            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = '#2E463D' }}
           >
             订阅
             <span style={{ opacity: 0.65, fontSize: '10px', letterSpacing: '0.14em' }}>SUBSCRIBE</span>
@@ -132,14 +109,17 @@ export default function Nav() {
           className="md:hidden flex flex-col gap-[5px] p-1 cursor-pointer"
           aria-label="菜单"
         >
-          <span className={`block w-5 h-px transition-all duration-500 ${menuOpen ? 'rotate-45 translate-y-[6px]' : ''}`} style={{ background: '#1C2220' }} />
-          <span className={`block w-5 h-px transition-all duration-500 ${menuOpen ? 'opacity-0' : ''}`} style={{ background: '#1C2220' }} />
-          <span className={`block w-5 h-px transition-all duration-500 ${menuOpen ? '-rotate-45 -translate-y-[6px]' : ''}`} style={{ background: '#1C2220' }} />
+          <span className={`block w-5 h-px transition-all duration-500 ${menuOpen ? 'rotate-45 translate-y-[6px]' : ''}`} style={{ background: '#F2EBDF' }} />
+          <span className={`block w-5 h-px transition-all duration-500 ${menuOpen ? 'opacity-0' : ''}`} style={{ background: '#F2EBDF' }} />
+          <span className={`block w-5 h-px transition-all duration-500 ${menuOpen ? '-rotate-45 -translate-y-[6px]' : ''}`} style={{ background: '#F2EBDF' }} />
         </button>
       </nav>
 
       {/* Fixed navigation is removed from document flow; keep page content below it. */}
-      <div aria-hidden="true" style={{ height: '64px' }} />
+      <div
+        aria-hidden="true"
+        className={`site-nav-spacer ${pathname === '/' ? 'site-nav-spacer--home' : ''}`}
+      />
 
       {/* Mobile fullscreen menu */}
       <div
@@ -169,7 +149,7 @@ export default function Nav() {
           onClick={() => { openModal(); setMenuOpen(false) }}
           className="cursor-pointer active:scale-[0.97] active:translate-y-[1px]"
           style={{
-            background: '#2E463D', color: '#fff',
+            background: '#F2EBDF', color: '#1A241E',
             fontFamily: 'var(--font-label)', fontSize: '13px',
             letterSpacing: '0.08em', padding: '12px 28px',
             borderRadius: '4px', border: 'none', marginTop: '8px',

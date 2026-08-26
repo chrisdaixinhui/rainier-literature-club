@@ -43,3 +43,10 @@ next-env.d.ts
 
 # Open Design runtime skills
 /.od-skills/
+
+# generated workspace artifacts
+/.codex-tmp/
+/outputs/
+/open-design-preview.html
+/水合错误说明.html
+/雨山前-网站分享版.html
