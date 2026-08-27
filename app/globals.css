@@ -439,10 +439,12 @@ button, a[href], [role="button"] {
 .event-gallery-dialog {
   position: fixed;
   inset: 0;
+  display: grid;
   width: 100vw;
   max-width: none;
   height: 100dvh;
   max-height: none;
+  place-items: center;
   border: 0;
   padding: clamp(16px, 3vw, 40px);
   overflow: hidden;
@@ -604,20 +606,19 @@ button, a[href], [role="button"] {
   width: 38px;
   height: 38px;
   place-items: center;
-  border: 1px solid rgba(46, 70, 61, 0.2);
-  border-radius: 50%;
-  background: rgba(250, 248, 245, 0.92);
+  border: 0;
+  border-radius: 0;
+  background: transparent;
   color: var(--color-forest);
   font-family: var(--font-sans);
   font-size: 25px;
   font-weight: 300;
   line-height: 1;
-  transition: border-color 180ms ease, background 180ms ease, transform 180ms ease;
+  transition: color 180ms ease, transform 180ms ease;
 }
 
 .event-gallery-dialog-close:hover {
-  border-color: rgba(46, 70, 61, 0.5);
-  background: var(--color-surface);
+  color: var(--color-sage);
   transform: rotate(4deg);
 }
 
