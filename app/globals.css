@@ -1464,14 +1464,26 @@ button, a[href], [role="button"] {
   margin-left: 0.73em;
 }
 
-.home-hero-title em {
+.home-hero-title-italic {
+  font-style: italic;
+}
+
+.home-hero-title-emphasis {
   margin-left: 0.06em;
   font-family: var(--font-serif);
   font-size: 1.55em;
   font-weight: 700;
-  font-style: italic;
+  font-style: normal;
   line-height: 0.86;
   letter-spacing: -0.1em;
+}
+
+.home-hero-logo {
+  display: block;
+  width: auto;
+  height: calc(1.55em * 0.86);
+  flex: 0 0 auto;
+  margin-left: 0.06em;
 }
 
 .home-hero-rule {

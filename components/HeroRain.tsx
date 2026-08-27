@@ -168,9 +168,28 @@ export default function HeroRain() {
 
         <div className="home-hero-stage">
           <div className="home-hero-copy">
-            <h1 id="home-hero-title" className="home-hero-title">
-              <span>在<em>雨山前</em></span>
-              <span>重逢<em>中文</em></span>
+            <h1
+              id="home-hero-title"
+              className="home-hero-title"
+              aria-label="在雨山前，重逢中文"
+            >
+              <span>
+                <span className="home-hero-title-italic">在</span>
+                <Image
+                  className="home-hero-logo"
+                  src="/images/hero-logo.png"
+                  alt=""
+                  aria-hidden="true"
+                  width={2265}
+                  height={662}
+                  loading="eager"
+                  sizes="(max-width: 700px) 55vw, 21vw"
+                />
+              </span>
+              <span>
+                <span className="home-hero-title-italic">重逢</span>
+                <span className="home-hero-title-emphasis">中文</span>
+              </span>
             </h1>
 
             <div className="home-hero-intro">
