@@ -1485,6 +1485,11 @@ button, a[href], [role="button"] {
   animation: home-rule-enter 900ms 280ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
+.home-hero .home-hero-rule {
+  background-color: var(--home-paper);
+  opacity: 1;
+}
+
 .home-hero-intro {
   display: grid;
   max-width: 21.354em;
