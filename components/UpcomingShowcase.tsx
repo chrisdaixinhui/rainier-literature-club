@@ -105,8 +105,9 @@ function resolvedCardScale(viewportWidth: number, viewportHeight: number, cardHe
 }
 
 function shouldStackCard(viewportWidth: number, posterRatio: number, cardHeight: number): boolean {
-  if (viewportWidth === 0 || cardHeight === 0) return false
+  if (viewportWidth === 0) return false
   if (viewportWidth <= STACK_BREAKPOINT) return true
+  if (cardHeight === 0) return false
   return posterRatio * cardHeight + MIN_COPY_WIDTH > availableCardWidth(viewportWidth)
 }
 
@@ -187,9 +188,13 @@ export default function UpcomingShowcase({
   const [viewportWidth, setViewportWidth] = useState(0)
   const [viewportHeight, setViewportHeight] = useState(0)
   const [posterRatios, setPosterRatios] = useState<Record<string, number>>({})
+  const [flowProgress, setFlowProgress] = useState(0)
   const cards = showcaseCards(activities, partners)
   const cardHeight = resolvedCardHeight(viewportWidth, viewportHeight)
   const cardScale = resolvedCardScale(viewportWidth, viewportHeight, cardHeight)
+  const isFlowLayout = cards.some((card) => (
+    shouldStackCard(viewportWidth, posterRatios[card.id] ?? DEFAULT_POSTER_RATIO, cardHeight)
+  ))
 
   useEffect(() => {
     const update = () => {
@@ -204,6 +209,29 @@ export default function UpcomingShowcase({
       setGridProgress(Math.max(0, Math.min(1, (nextViewportHeight - bounds.top) / nextViewportHeight)))
       setViewportWidth(window.innerWidth)
       setViewportHeight(nextViewportHeight)
+
+      if (section.classList.contains('is-flow')) {
+        const cardsInFlow = Array.from(section.querySelectorAll<HTMLElement>('.home-upcoming-card'))
+        const viewportCenter = nextViewportHeight / 2
+        let activeCard: HTMLElement | null = null
+        let activeDistance = Number.POSITIVE_INFINITY
+
+        for (const card of cardsInFlow) {
+          const cardBounds = card.getBoundingClientRect()
+          const distance = Math.abs(cardBounds.top + cardBounds.height / 2 - viewportCenter)
+          if (distance < activeDistance) {
+            activeCard = card
+            activeDistance = distance
+          }
+        }
+
+        if (activeCard && cards.length > 0) {
+          const cardBounds = activeCard.getBoundingClientRect()
+          const index = Number(activeCard.dataset.upcomingIndex ?? 0)
+          const cardProgress = clamp(0, (viewportCenter - cardBounds.top) / Math.max(1, cardBounds.height), 1)
+          setFlowProgress(clamp(0, (index + cardProgress) / cards.length, 1))
+        }
+      }
     }
 
     const requestUpdate = () => {
@@ -219,7 +247,7 @@ export default function UpcomingShowcase({
       window.removeEventListener('resize', requestUpdate)
       if (frameRef.current !== null) window.cancelAnimationFrame(frameRef.current)
     }
-  }, [])
+  }, [cards.length])
 
   useEffect(() => {
     const media = window.matchMedia('(prefers-reduced-motion: reduce)')
@@ -231,10 +259,27 @@ export default function UpcomingShowcase({
 
   if (cards.length === 0) return null
 
+  const displayedProgress = isFlowLayout ? flowProgress : progress
+  const renderProgress = () => (
+    <div className="home-upcoming-progress" aria-hidden="true">
+      {cards.map((card, index) => {
+        const segmentProgress = Math.max(0, Math.min(1, displayedProgress * cards.length - index))
+        return (
+          <span className="home-upcoming-progress-segment" key={card.id}>
+            <span
+              className="home-upcoming-progress-fill"
+              style={{ transform: `scaleX(${segmentProgress})` }}
+            />
+          </span>
+        )
+      })}
+    </div>
+  )
+
   return (
     <section
       ref={sectionRef}
-      className="home-upcoming-section"
+      className={`home-upcoming-section${isFlowLayout ? ' is-flow' : ''}`}
       style={{
         '--home-upcoming-steps': cards.length * CARD_SCROLL_PHASES + 1,
         '--home-upcoming-grid-progress': gridProgress,
@@ -256,24 +301,28 @@ export default function UpcomingShowcase({
           <h2 id="home-upcoming-title">敬请期待</h2>
         </header>
 
+        {isFlowLayout && renderProgress()}
+
         <div className="home-upcoming-deck">
           {cards.map((card, index) => {
             const motion = cardMotion(progress, index, cards.length)
-            const canInteract = reducedMotion || (motion.phase > 0.55 && motion.phase < 2.45)
+            const canInteract = isFlowLayout || reducedMotion || (motion.phase > 0.55 && motion.phase < 2.45)
             const actionUrl = hasUsableUrl(card.actionUrl) ? card.actionUrl : null
             const posterRatio = posterRatios[card.id] ?? DEFAULT_POSTER_RATIO
-            const isStacked = shouldStackCard(viewportWidth, posterRatio, cardHeight)
 
             return (
               <article
                 key={card.id}
-                className={`home-upcoming-card${isStacked ? ' is-stacked' : ''}`}
+                className={`home-upcoming-card${isFlowLayout ? ' is-stacked' : ''}`}
+                data-upcoming-index={index}
                 style={{
                   '--home-upcoming-poster-ratio': posterRatio,
-                  opacity: motion.opacity,
-                  pointerEvents: canInteract ? 'auto' : 'none',
-                  transform: `translate3d(calc(-50% + ${motion.x}vw), -50%, 0) scale(${motion.scale * cardScale})`,
-                  zIndex: Math.round(100 - Math.abs(1 - motion.phase) * 10),
+                  ...(!isFlowLayout ? {
+                    opacity: motion.opacity,
+                    pointerEvents: canInteract ? 'auto' : 'none',
+                    transform: `translate3d(calc(-50% + ${motion.x}vw), -50%, 0) scale(${motion.scale * cardScale})`,
+                    zIndex: Math.round(100 - Math.abs(1 - motion.phase) * 10),
+                  } : {}),
                 } as CSSProperties}
                 aria-hidden={!canInteract}
                 inert={!canInteract}
@@ -342,19 +391,7 @@ export default function UpcomingShowcase({
           })}
         </div>
 
-        <div className="home-upcoming-progress" aria-hidden="true">
-          {cards.map((card, index) => {
-            const segmentProgress = Math.max(0, Math.min(1, progress * cards.length - index))
-            return (
-              <span className="home-upcoming-progress-segment" key={card.id}>
-                <span
-                  className="home-upcoming-progress-fill"
-                  style={{ transform: `scaleX(${segmentProgress})` }}
-                />
-              </span>
-            )
-          })}
-        </div>
+        {!isFlowLayout && renderProgress()}
       </div>
     </section>
   )
