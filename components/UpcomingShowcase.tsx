@@ -64,8 +64,10 @@ function showcaseCards(activities: ActivityRecord[], partners: PartnerRecord[]):
 }
 
 const CARD_SCROLL_PHASES = 3
+const CARD_SCALE = 1.1
 const DEFAULT_POSTER_RATIO = 3 / 4
 const MIN_COPY_WIDTH = 360
+const MIN_CARD_EDGE = 18
 const STACK_BREAKPOINT = 900
 
 function clamp(min: number, value: number, max: number): number {
@@ -89,6 +91,17 @@ function resolvedCardHeight(viewportWidth: number, viewportHeight: number): numb
   const deckBottom = clamp(52, viewportHeight * 0.07, 76)
   const preferredHeight = clamp(360, viewportHeight * 0.58, 620)
   return Math.max(0, Math.min(preferredHeight, viewportHeight - deckTop - deckBottom))
+}
+
+function resolvedCardScale(viewportWidth: number, viewportHeight: number, cardHeight: number): number {
+  if (viewportWidth <= STACK_BREAKPOINT || viewportHeight === 0 || cardHeight === 0) return 1
+
+  const deckTop = clamp(210, viewportHeight * 0.25, 280)
+  const deckBottom = clamp(52, viewportHeight * 0.07, 76)
+  const horizontalScale = (viewportWidth - MIN_CARD_EDGE * 2) / availableCardWidth(viewportWidth)
+  const verticalScale = (viewportHeight - deckTop - deckBottom) / cardHeight
+
+  return Math.min(CARD_SCALE, horizontalScale, verticalScale)
 }
 
 function shouldStackCard(viewportWidth: number, posterRatio: number, cardHeight: number): boolean {
@@ -176,6 +189,7 @@ export default function UpcomingShowcase({
   const [posterRatios, setPosterRatios] = useState<Record<string, number>>({})
   const cards = showcaseCards(activities, partners)
   const cardHeight = resolvedCardHeight(viewportWidth, viewportHeight)
+  const cardScale = resolvedCardScale(viewportWidth, viewportHeight, cardHeight)
 
   useEffect(() => {
     const update = () => {
@@ -258,7 +272,7 @@ export default function UpcomingShowcase({
                   '--home-upcoming-poster-ratio': posterRatio,
                   opacity: motion.opacity,
                   pointerEvents: canInteract ? 'auto' : 'none',
-                  transform: `translate3d(calc(-50% + ${motion.x}vw), -50%, 0) scale(${motion.scale})`,
+                  transform: `translate3d(calc(-50% + ${motion.x}vw), -50%, 0) scale(${motion.scale * cardScale})`,
                   zIndex: Math.round(100 - Math.abs(1 - motion.phase) * 10),
                 } as CSSProperties}
                 aria-hidden={!canInteract}
