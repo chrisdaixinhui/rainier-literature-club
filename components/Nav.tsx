@@ -48,7 +48,7 @@ export default function Nav() {
   return (
     <>
       <nav
-        className={`site-nav flex items-center justify-between border-b ${isHeroNav ? 'site-nav--hero' : ''}`}
+        className={`site-nav flex items-center justify-between border-b ${pathname === '/' ? 'site-nav--home' : ''} ${isHeroNav ? 'site-nav--hero' : ''}`}
         style={{
           position: 'fixed',
           top: 0,
@@ -62,11 +62,9 @@ export default function Nav() {
         {/* Logo */}
         <Link href="/" className="flex items-center" aria-label="雨山前 Rainier Literature Society 首页">
           <span
+            className="site-nav-logo-mark"
             aria-hidden="true"
             style={{
-              display: 'block',
-              width: '119px',
-              height: '38px',
               background: '#F2EBDF',
               maskImage: "url('/rainier-logo-horizontal-black.png')",
               maskPosition: 'center',
@@ -76,7 +74,6 @@ export default function Nav() {
               WebkitMaskPosition: 'center',
               WebkitMaskRepeat: 'no-repeat',
               WebkitMaskSize: 'contain',
-              transform: 'translateY(5px)',
             }}
           />
         </Link>
@@ -85,21 +82,18 @@ export default function Nav() {
           {/* Subscribe CTA */}
           <button
             onClick={openModal}
-            className="flex items-center gap-1.5 cursor-pointer active:scale-[0.97] active:translate-y-[1px]"
+            className="site-nav-subscribe flex items-center cursor-pointer active:scale-[0.97] active:translate-y-[1px]"
             style={{
               background: '#F2EBDF',
               color: '#1A241E',
               fontFamily: 'var(--font-label)',
-              fontSize: '12px',
               letterSpacing: '0.08em',
-              padding: '8px 18px',
-              borderRadius: '4px',
               border: 'none',
               transition: 'all 0.5s ease-in-out',
             }}
           >
             订阅
-            <span style={{ opacity: 0.65, fontSize: '10px', letterSpacing: '0.14em' }}>SUBSCRIBE</span>
+            <span className="site-nav-subscribe-en" style={{ opacity: 0.65, letterSpacing: '0.14em' }}>SUBSCRIBE</span>
           </button>
         </div>
 
