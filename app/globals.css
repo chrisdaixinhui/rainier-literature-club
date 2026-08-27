@@ -1999,13 +1999,15 @@ button, a[href], [role="button"] {
 }
 
 .home-upcoming-copy {
+  --home-upcoming-copy-inline-inset: clamp(30px, 4vw, 64px);
   display: grid;
   grid-template-rows: auto minmax(0, 1fr) auto;
   gap: clamp(18px, 3vh, 32px);
   min-height: 0;
   min-width: 0;
   overflow: hidden;
-  padding: clamp(30px, 4vw, 64px);
+  padding-block: clamp(30px, 4vw, 64px);
+  padding-inline: var(--home-upcoming-copy-inline-inset);
 }
 
 .home-upcoming-copy-heading {
@@ -2025,7 +2027,7 @@ button, a[href], [role="button"] {
   min-height: 0;
   overflow-x: hidden;
   overflow-y: auto;
-  scrollbar-gutter: stable;
+  scrollbar-gutter: stable both-edges;
 }
 
 .home-upcoming-body:focus-visible {
@@ -2067,7 +2069,6 @@ button, a[href], [role="button"] {
 }
 
 .home-upcoming-description {
-  max-width: 64ch;
   font-family: var(--font-sans);
   font-size: clamp(13px, 1.1vw, 16px);
   line-height: 1.85;
@@ -2446,7 +2447,8 @@ button, a[href], [role="button"] {
 
   .home-upcoming-copy {
     gap: 12px;
-    padding: 18px 20px 20px;
+    --home-upcoming-copy-inline-inset: 20px;
+    padding-block: 18px 20px;
   }
 
   .home-upcoming-copy h3 {
