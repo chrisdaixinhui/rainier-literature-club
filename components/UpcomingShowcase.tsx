@@ -46,6 +46,7 @@ export default function UpcomingShowcase({ activities }: { activities: ActivityR
   const sectionRef = useRef<HTMLElement>(null)
   const frameRef = useRef<number | null>(null)
   const [progress, setProgress] = useState(0)
+  const [gridProgress, setGridProgress] = useState(0)
   const [reducedMotion, setReducedMotion] = useState(false)
 
   useEffect(() => {
@@ -55,8 +56,10 @@ export default function UpcomingShowcase({ activities }: { activities: ActivityR
       if (!section) return
 
       const bounds = section.getBoundingClientRect()
-      const scrollRange = Math.max(1, section.offsetHeight - window.innerHeight)
+      const viewportHeight = window.innerHeight
+      const scrollRange = Math.max(1, section.offsetHeight - viewportHeight)
       setProgress(Math.max(0, Math.min(1, -bounds.top / scrollRange)))
+      setGridProgress(Math.max(0, Math.min(1, (viewportHeight - bounds.top) / viewportHeight)))
     }
 
     const requestUpdate = () => {
@@ -88,11 +91,21 @@ export default function UpcomingShowcase({ activities }: { activities: ActivityR
     <section
       ref={sectionRef}
       className="home-upcoming-section"
-      style={{ '--home-upcoming-steps': activities.length * CARD_SCROLL_PHASES + 1 } as CSSProperties}
+      style={{
+        '--home-upcoming-steps': activities.length * CARD_SCROLL_PHASES + 1,
+        '--home-upcoming-grid-progress': gridProgress,
+      } as CSSProperties}
       aria-labelledby="home-upcoming-title"
       data-od-id="home-upcoming"
     >
       <div className="home-upcoming-sticky">
+        <div className="home-upcoming-grid" aria-hidden="true">
+          <span className="home-upcoming-grid-layer home-upcoming-grid-horizontal home-upcoming-grid-from-left" />
+          <span className="home-upcoming-grid-layer home-upcoming-grid-horizontal home-upcoming-grid-from-right" />
+          <span className="home-upcoming-grid-layer home-upcoming-grid-vertical home-upcoming-grid-from-top" />
+          <span className="home-upcoming-grid-layer home-upcoming-grid-vertical home-upcoming-grid-from-bottom" />
+        </div>
+
         <header className="home-upcoming-heading">
           <p>What’s coming…</p>
           <h2 id="home-upcoming-title">敬请期待</h2>

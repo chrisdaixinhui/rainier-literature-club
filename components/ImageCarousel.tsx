@@ -94,7 +94,7 @@ export default function ImageCarousel() {
             borderRadius: '50%',
             background: 'rgba(28,34,32,0.42)',
             color: '#fff',
-            fontFamily: 'Arial, sans-serif',
+            fontFamily: 'var(--font-label)',
             fontSize: '34px',
             fontWeight: 300,
             lineHeight: 1,
