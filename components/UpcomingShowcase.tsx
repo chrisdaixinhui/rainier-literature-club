@@ -14,6 +14,21 @@ function activityMeta(activity: ActivityRecord): string {
 }
 
 const CARD_SCROLL_PHASES = 3
+const DEFAULT_POSTER_RATIO = 3 / 4
+const DESKTOP_POSTER_HEIGHT = 520
+const MIN_COPY_WIDTH = 360
+const STACK_BREAKPOINT = 900
+
+function availableCardWidth(viewportWidth: number): number {
+  const horizontalInset = Math.min(144, Math.max(36, viewportWidth * 0.08))
+  return Math.min(viewportWidth - horizontalInset, 1240)
+}
+
+function shouldStackCard(viewportWidth: number, posterRatio: number): boolean {
+  if (viewportWidth === 0) return false
+  if (viewportWidth <= STACK_BREAKPOINT) return true
+  return posterRatio * DESKTOP_POSTER_HEIGHT + MIN_COPY_WIDTH > availableCardWidth(viewportWidth)
+}
 
 function cardMotion(progress: number, index: number, total: number) {
   const phase = progress * total * CARD_SCROLL_PHASES - index * CARD_SCROLL_PHASES
@@ -48,6 +63,8 @@ export default function UpcomingShowcase({ activities }: { activities: ActivityR
   const [progress, setProgress] = useState(0)
   const [gridProgress, setGridProgress] = useState(0)
   const [reducedMotion, setReducedMotion] = useState(false)
+  const [viewportWidth, setViewportWidth] = useState(0)
+  const [posterRatios, setPosterRatios] = useState<Record<string, number>>({})
 
   useEffect(() => {
     const update = () => {
@@ -60,6 +77,7 @@ export default function UpcomingShowcase({ activities }: { activities: ActivityR
       const scrollRange = Math.max(1, section.offsetHeight - viewportHeight)
       setProgress(Math.max(0, Math.min(1, -bounds.top / scrollRange)))
       setGridProgress(Math.max(0, Math.min(1, (viewportHeight - bounds.top) / viewportHeight)))
+      setViewportWidth(window.innerWidth)
     }
 
     const requestUpdate = () => {
@@ -116,24 +134,39 @@ export default function UpcomingShowcase({ activities }: { activities: ActivityR
             const motion = cardMotion(progress, index, activities.length)
             const canInteract = reducedMotion || (motion.phase > 0.55 && motion.phase < 2.45)
             const registrationUrl = hasUsableUrl(activity.registerUrl) ? activity.registerUrl : null
+            const posterRatio = posterRatios[activity.id] ?? DEFAULT_POSTER_RATIO
+            const isStacked = shouldStackCard(viewportWidth, posterRatio)
 
             return (
               <article
                 key={activity.id}
-                className="home-upcoming-card"
+                className={`home-upcoming-card${isStacked ? ' is-stacked' : ''}`}
                 style={{
+                  '--home-upcoming-poster-ratio': posterRatio,
                   opacity: motion.opacity,
                   pointerEvents: canInteract ? 'auto' : 'none',
                   transform: `translate3d(calc(-50% + ${motion.x}vw), 0, 0) scale(${motion.scale})`,
                   zIndex: Math.round(100 - Math.abs(1 - motion.phase) * 10),
-                }}
+                } as CSSProperties}
                 aria-hidden={!canInteract}
                 inert={!canInteract}
               >
                 <div className="home-upcoming-poster">
                   {activity.poster ? (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={activity.poster} alt={`${activity.title} 活动海报`} />
+                    <img
+                      src={activity.poster}
+                      alt={`${activity.title} 活动海报`}
+                      onLoad={({ currentTarget }) => {
+                        const ratio = currentTarget.naturalWidth / currentTarget.naturalHeight
+                        if (!Number.isFinite(ratio) || ratio <= 0) return
+                        setPosterRatios((current) => (
+                          current[activity.id] === ratio
+                            ? current
+                            : { ...current, [activity.id]: ratio }
+                        ))
+                      }}
+                    />
                   ) : (
                     <div className="home-upcoming-poster-placeholder" aria-hidden="true">
                       <span>Rainier Literature Society</span>
@@ -142,27 +175,34 @@ export default function UpcomingShowcase({ activities }: { activities: ActivityR
                   )}
                 </div>
 
-                <div className="home-upcoming-copy">
-                  <p className="home-upcoming-count">
-                    {String(index + 1).padStart(2, '0')} / {String(activities.length).padStart(2, '0')}
-                  </p>
-                  <div>
-                    <h3>{activity.title}</h3>
-                    {activity.titleEn && <p className="home-upcoming-title-en">{activity.titleEn}</p>}
-                    <p className="home-upcoming-meta">{activityMeta(activity)}</p>
+                <div
+                  className="home-upcoming-copy"
+                  role="region"
+                  aria-label={`${activity.title} 活动详情`}
+                  tabIndex={canInteract ? 0 : -1}
+                >
+                  <div className="home-upcoming-copy-inner">
+                    <p className="home-upcoming-count">
+                      {String(index + 1).padStart(2, '0')} / {String(activities.length).padStart(2, '0')}
+                    </p>
+                    <div>
+                      <h3>{activity.title}</h3>
+                      {activity.titleEn && <p className="home-upcoming-title-en">{activity.titleEn}</p>}
+                      <p className="home-upcoming-meta">{activityMeta(activity)}</p>
+                    </div>
+                    {activity.description && <p className="home-upcoming-description">{activity.description}</p>}
+                    {registrationUrl ? (
+                      <a className="home-upcoming-action" href={registrationUrl} target="_blank" rel="noreferrer">
+                        <span>报名活动 · Register</span>
+                        <span aria-hidden="true">↗</span>
+                      </a>
+                    ) : (
+                      <span className="home-upcoming-action is-disabled" aria-disabled="true">
+                        <span>报名即将开放</span>
+                        <span aria-hidden="true">···</span>
+                      </span>
+                    )}
                   </div>
-                  {activity.description && <p className="home-upcoming-description">{activity.description}</p>}
-                  {registrationUrl ? (
-                    <a className="home-upcoming-action" href={registrationUrl} target="_blank" rel="noreferrer">
-                      <span>报名活动 · Register</span>
-                      <span aria-hidden="true">↗</span>
-                    </a>
-                  ) : (
-                    <span className="home-upcoming-action is-disabled" aria-disabled="true">
-                      <span>报名即将开放</span>
-                      <span aria-hidden="true">···</span>
-                    </span>
-                  )}
                 </div>
               </article>
             )
