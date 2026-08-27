@@ -1475,12 +1475,12 @@ button, a[href], [role="button"] {
 
 .home-hero-rule {
   position: absolute;
-  top: calc(var(--home-hero-action-y) - 4px);
+  top: calc(var(--home-hero-action-y) - 3px);
   right: 0;
   left: -100vw;
   z-index: 3;
-  height: 8px;
-  background: color-mix(in oklch, var(--home-paper) 55%, transparent);
+  height: 6px;
+  background: var(--home-paper);
   transform-origin: left;
   animation: home-rule-enter 900ms 280ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
