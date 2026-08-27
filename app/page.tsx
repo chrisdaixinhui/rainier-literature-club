@@ -1,6 +1,5 @@
 import { Suspense } from 'react'
 import HeroRain from '@/components/HeroRain'
-import SentenceOfDay from '@/components/SentenceOfDay'
 import PhotoWall, { type GalleryPoster } from '@/components/PhotoWall'
 import ImageCarousel from '@/components/ImageCarousel'
 import UpcomingShowcase from '@/components/UpcomingShowcase'
@@ -175,9 +174,6 @@ async function HomeContent() {
         <PhotoWall events={galleryPosters} />
       </section>
 
-      <Suspense fallback={null}>
-        <SentenceOfDay />
-      </Suspense>
     </div>
   )
 }
