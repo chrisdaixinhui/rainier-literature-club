@@ -10,6 +10,10 @@ import { resolveActivityState } from './activityStatus'
 
 const NOTION_VERSION = '2022-06-28'
 
+const LOCAL_POSTER_OVERRIDES: Record<string, string> = {
+  '3b8b89c0-25b0-816f-9bcc-e5fa373fff75': '/images/upcoming-test-poster.png',
+}
+
 interface NotionPage {
   id: string
   properties: Record<string, unknown>
@@ -251,7 +255,8 @@ function normalizeNotionActivities(rows: NotionPage[]): ActivitiesPayload {
     const status: ActivityStatus = resolvedState
     const title = textValue(row, ['活动名称', '名称', 'Name', 'Title']) || '未命名活动'
     const description = textValue(row, ['简介', '描述', 'Description'])
-    const poster = urlPropertyValue(row, ['海报图片 URL', 'Poster URL'])
+    const poster = LOCAL_POSTER_OVERRIDES[row.id]
+      ?? urlPropertyValue(row, ['海报图片 URL', 'Poster URL'])
     const registerUrl = urlValue(row, ['报名链接（Eventbrite）', '报名链接', 'Register URL', '报名'])
     const reviewUrl = urlValue(row, ['回顾文章链接', 'Review URL', '回顾链接'])
     const generalPrice = numberValue(row, ['普通票价', 'General Price', '普通票'])

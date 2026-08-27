@@ -1875,13 +1875,14 @@ button, a[href], [role="button"] {
 }
 
 .home-upcoming-card {
+  --home-upcoming-poster-ratio: 0.75;
   position: absolute;
-  top: clamp(300px, 30svh, 360px);
-  bottom: clamp(48px, 7svh, 76px);
+  top: clamp(220px, 30svh, 300px);
   left: 50%;
   display: grid;
-  grid-template-columns: minmax(280px, 0.78fr) minmax(0, 1.22fr);
+  grid-template-columns: calc(520px * var(--home-upcoming-poster-ratio)) minmax(360px, 1fr);
   width: min(calc(100% - clamp(36px, 8vw, 144px)), 1240px);
+  height: 520px;
   overflow: hidden;
   border: 1px solid color-mix(in oklch, var(--home-forest) 20%, transparent);
   background: var(--home-paper);
@@ -1892,6 +1893,7 @@ button, a[href], [role="button"] {
 .home-upcoming-poster {
   position: relative;
   min-height: 0;
+  min-width: 0;
   overflow: hidden;
   background: var(--home-rain);
 }
@@ -1900,7 +1902,16 @@ button, a[href], [role="button"] {
   display: block;
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
+  object-position: left top;
+}
+
+.home-upcoming-card.is-stacked {
+  grid-template-columns: 1fr;
+  grid-template-rows: minmax(0, 0.44fr) minmax(0, 0.56fr);
+}
+
+.home-upcoming-card.is-stacked .home-upcoming-poster img {
   object-position: center;
 }
 
@@ -1931,14 +1942,25 @@ button, a[href], [role="button"] {
 }
 
 .home-upcoming-copy {
-  display: flex;
   min-height: 0;
   min-width: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding: clamp(30px, 4vw, 64px);
+  scrollbar-gutter: stable;
+}
+
+.home-upcoming-copy:focus-visible {
+  outline: 2px solid var(--home-rain);
+  outline-offset: -4px;
+}
+
+.home-upcoming-copy-inner {
+  display: flex;
+  min-height: 100%;
   flex-direction: column;
   justify-content: center;
   gap: clamp(18px, 3vh, 32px);
-  overflow: hidden;
-  padding: clamp(30px, 4vw, 64px);
 }
 
 .home-upcoming-count {
@@ -1975,15 +1997,11 @@ button, a[href], [role="button"] {
 }
 
 .home-upcoming-description {
-  display: -webkit-box;
   max-width: 64ch;
-  overflow: hidden;
   font-family: var(--font-sans);
   font-size: clamp(13px, 1.1vw, 16px);
   line-height: 1.85;
   color: color-mix(in oklch, var(--home-forest) 78%, transparent);
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 5;
 }
 
 .home-upcoming-action {
@@ -2131,6 +2149,15 @@ button, a[href], [role="button"] {
 
   .home-carousel-caption p {
     max-width: 38ch;
+  }
+
+  .home-upcoming-card {
+    grid-template-columns: 1fr;
+    grid-template-rows: minmax(0, 0.44fr) minmax(0, 0.56fr);
+  }
+
+  .home-upcoming-poster img {
+    object-position: center;
   }
 
 }
@@ -2324,12 +2351,14 @@ button, a[href], [role="button"] {
     font-size: clamp(3rem, 14vw, 4.1rem);
   }
 
-  .home-upcoming-card {
+  .home-upcoming-card,
+  .home-upcoming-card.is-stacked {
     top: 170px;
     bottom: 38px;
     grid-template-columns: 1fr;
     grid-template-rows: minmax(0, 0.42fr) minmax(0, 0.58fr);
     width: calc(100% - 36px);
+    height: auto;
   }
 
   .home-upcoming-poster-placeholder {
@@ -2341,10 +2370,12 @@ button, a[href], [role="button"] {
   }
 
   .home-upcoming-copy {
+    padding: 18px 20px 20px;
+  }
+
+  .home-upcoming-copy-inner {
     justify-content: flex-start;
     gap: 12px;
-    overflow: hidden;
-    padding: 18px 20px 20px;
   }
 
   .home-upcoming-copy h3 {
@@ -2365,7 +2396,6 @@ button, a[href], [role="button"] {
   .home-upcoming-description {
     font-size: 11px;
     line-height: 1.6;
-    -webkit-line-clamp: 3;
   }
 
   .home-upcoming-action {
