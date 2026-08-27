@@ -524,6 +524,22 @@ export default function ActivitiesClient({ initialData }: { initialData: Activit
         >
           在这里找到下一次相聚，也翻阅我们共同留下的阅读现场。
         </p>
+        {initialData.source === 'static-fallback' && (
+          <p
+            role="status"
+            style={{
+              maxWidth: '560px',
+              margin: '14px auto 0',
+              fontFamily: 'var(--font-label)',
+              fontSize: '10px',
+              lineHeight: 1.7,
+              letterSpacing: '0.08em',
+              color: '#8A6A42',
+            }}
+          >
+            内容正在初始化，当前显示内置快照 · INITIALIZING FROM STATIC SNAPSHOT
+          </p>
+        )}
       </header>
 
       <div

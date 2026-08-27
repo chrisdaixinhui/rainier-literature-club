@@ -111,9 +111,9 @@
 生产构建的路由输出：
 
 ```text
-/                    Partial Prerender，活动缓存 10 分钟，最长 1 小时
-/activities          Static，活动缓存 10 分钟，最长 1 小时
-/support             Static，活动缓存 10 分钟，最长 1 小时
+/                    Partial Prerender，活动从 Data Cache 快照读取并按请求时间计算状态
+/activities          Partial Prerender，活动从 Data Cache 快照读取并按请求时间计算状态
+/support             Partial Prerender，活动从 Data Cache 快照读取并按请求时间计算状态
 /api/revalidate      Dynamic
 /api/subscribe       Dynamic
 /api/sync-images     Dynamic
@@ -389,9 +389,11 @@
 ```text
 Notion 活动数据库
         │
-        ├── 成功：标准化 → 状态计算 → 缓存 → 页面
+        ├── 成功：原始记录 → 校验 → 持久化快照 → 页面标准化与状态计算
         │
-        └── 未配置/请求失败：data/activities.json → 标准化 → 页面
+        └── 请求失败：保留最后一次成功快照 → 页面继续展示
+                         │
+                         └── 从未成功同步：data/activities.json → 标准化 → 页面
 
 Notion 海报文件 → 同步任务 → Cloudinary → 永久 URL 回写 Notion
 Notion 每日一句数据库 → 启用项过滤 → 日期轮询 → 首页
@@ -453,11 +455,12 @@ Notion 每日一句数据库 → 启用项过滤 → 日期轮询 → 首页
 
 ### 5.5 缓存与刷新
 
-- 活动和每日一句均使用 Next.js Cache Components；
-- `stale: 60s`、`revalidate: 600s`、`expire: 3600s`；
-- `/api/revalidate` 同时刷新 `activities` 与 `sentences` 标签；
+- 页面使用 Next.js Cache Components；活动页在请求时读取并标准化可跨实例、跨部署的 Data Cache 快照；
+- 每日一句使用 `stale: 60s`、`revalidate: 600s`、`expire: 3600s`；活动快照自身每 600 秒重新验证；
+- `/api/revalidate` 同时标记 `activities` 与 `sentences` 标签待重新验证；
 - 海报同步成功后刷新 `activities` 标签；
 - Vercel Cron 每 10 分钟调用 `/api/sync-images`；
+- 活动快照只有在 Notion 返回结构有效且完整分页成功后才会写入；同步失败保留旧快照；
 - 管理接口接受 `x-admin-key` 或 `Authorization: Bearer`；
 - `ADMIN_PASSWORD` 与 `CRON_SECRET` 任一有效即可通过恒定时间比较鉴权。
 
@@ -472,17 +475,15 @@ Notion 每日一句数据库 → 启用项过滤 → 日期轮询 → 首页
 - 0 条票务；
 - 往期记录均无海报 URL，因此首页改用 8 张内置画廊海报。
 
-该兜底只能保证页面可打开，不能保证业务内容仍可用。上线前应更新静态数据，并建立定期校验机制。
+该兜底只用于首次没有成功快照的初始化场景；已有成功快照时，外部服务暂时不可用不会切换到这份静态数据。
 
 ### 5.7 数据与同步边界
 
-- 活动读取与海报同步当前每次最多处理 100 条 Notion 记录，未实现分页；
+- 活动读取与海报同步均按 Notion 游标分页读取；
 - 每日一句已实现分页；
-- 当活动库超过 100 条时，部分活动和海报可能不再被处理；
-- Notion 请求失败会被静默转为静态兜底，当前没有告警；
-- 构建阶段即使无法访问 Notion也会成功，因此存在“构建成功但发布了过期兜底内容”的风险。
-
-上线前应将活动读取、海报同步分页和数据源失败告警列为高优先级可靠性任务。
+- 活动快照的 Notion 查询设置超时并记录结构化成功/失败日志；
+- 活动快照查询失败不会覆盖已有活动快照；
+- 构建阶段不依赖 Notion，不会因上游失败阻塞构建；运行时无成功快照才显示初始化兜底，部署后由 Cron 继续同步最新内容。
 
 ---
 
@@ -508,8 +509,8 @@ Notion 每日一句数据库 → 启用项过滤 → 日期轮询 → 首页
 
 | 接口 | 方法 | 鉴权 | 行为 |
 |---|---|---|---|
-| `/api/revalidate` | POST | Admin/Cron | 刷新活动与句子缓存 |
-| `/api/sync-images` | GET/POST | Admin/Cron | 同步 Notion 海报至 Cloudinary |
+| `/api/revalidate` | POST | Admin/Cron | 标记活动与句子缓存待重新验证 |
+| `/api/sync-images` | GET/POST | Admin/Cron | 刷新活动快照并同步 Notion 海报至 Cloudinary |
 | `/api/subscribe` | POST | 公开 | 校验邮箱并写入 Mailchimp `pending` |
 
 ### 6.3 环境变量
@@ -661,8 +662,8 @@ vercel.json                    10 分钟图片同步 Cron
 
 ### P1 — 上线可靠性
 
-- [ ] 为活动查询与海报同步增加 Notion 分页；
-- [ ] 为 Notion 降级、Cron、Cloudinary 与 Mailchimp 失败增加日志和告警；
+- [x] 为活动查询与海报同步增加 Notion 分页；
+- [x] 为 Notion 降级与同步失败增加结构化日志；
 - [ ] 增加活动状态、内容标准化和 API 的自动化测试；
 - [ ] 增加首页、活动页、订阅 Modal 的最小端到端回归；
 - [ ] 为订阅接口增加频率限制；

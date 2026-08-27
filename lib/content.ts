@@ -1,5 +1,10 @@
-import { cacheLife, cacheTag } from 'next/cache'
-import { fetchActivitiesFromNotion } from './notion'
+import { connection } from 'next/server'
+import {
+  getNotionActivitySnapshot,
+  hasNotionActivityDatabase,
+  normalizeNotionActivities,
+} from './notion'
+import type { NotionActivitySnapshot } from './notion'
 import type {
   ActivitiesPayload,
   ActivityRecord,
@@ -14,22 +19,45 @@ import { resolveActivityState } from './activityStatus'
 /**
  * Single entry point for activity content.
  *
- * Notion is the source of truth when configured; the static JSON files are the
- * automatic fallback when Notion is unavailable. The result is cached with a
- * 10-minute revalidation window and tagged for on-demand refresh.
+ * Notion is refreshed into a durable Next/Vercel Data Cache snapshot. Pages
+ * read that snapshot and normalize it against the current clock. The page
+ * waits for the request before reading time; the snapshot itself remains in
+ * the durable Data Cache. Static data is only used when no successful snapshot
+ * has ever been stored.
  */
 export async function getActivitiesPayload(): Promise<ActivitiesPayload> {
-  'use cache'
-  cacheTag('activities')
-  cacheLife({
-    stale: 60,
-    revalidate: 600,
-    expire: 3600,
-  })
+  await connection()
 
-  const notionData = await fetchActivitiesFromNotion()
-  if (notionData) return notionData
-  return normalizeStaticData(staticData as unknown as StaticDataShape)
+  const hasDatabase = hasNotionActivityDatabase()
+  let snapshot: NotionActivitySnapshot | null = null
+  if (hasDatabase) {
+    try {
+      snapshot = await getNotionActivitySnapshot()
+    } catch {
+      // The snapshot loader logs the upstream error. Static data is only the
+      // bootstrap path when no successful snapshot exists yet.
+    }
+  }
+
+  if (snapshot) {
+    return {
+      ...normalizeNotionActivities(snapshot.rows, new Date()),
+      source: 'notion',
+      syncedAt: snapshot.syncedAt,
+    }
+  }
+
+  console.warn(JSON.stringify({
+    scope: 'notion-activities',
+    event: 'using-static-fallback',
+    reason: hasDatabase ? 'no-successful-snapshot' : 'not-configured',
+  }))
+
+  return {
+    ...normalizeStaticData(staticData as unknown as StaticDataShape),
+    source: 'static-fallback',
+    syncedAt: null,
+  }
 }
 
 interface StaticActivityInput {

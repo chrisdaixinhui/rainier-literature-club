@@ -7,16 +7,49 @@ import type {
   TicketRecord,
 } from './types'
 import { resolveActivityState } from './activityStatus'
+import { unstable_cache } from 'next/cache'
 
 const NOTION_VERSION = '2022-06-28'
+const NOTION_REQUEST_TIMEOUT_MS = 15_000
+const NOTION_ACTIVITY_CACHE_REVALIDATE_SECONDS = 600
+const NOTION_ACTIVITY_CACHE_TAG = 'activities'
 
 const LOCAL_POSTER_OVERRIDES: Record<string, string> = {
   '3b8b89c0-25b0-816f-9bcc-e5fa373fff75': '/images/upcoming-test-poster.png',
 }
 
-interface NotionPage {
+export interface NotionPage {
   id: string
+  last_edited_time?: string
   properties: Record<string, unknown>
+}
+
+export interface NotionActivitySnapshot {
+  rows: NotionPage[]
+  syncedAt: string
+}
+
+export interface NotionActivityRefreshResult {
+  status: 'success' | 'failed'
+  records: number | null
+  syncedAt: string | null
+  error?: {
+    code: string
+    status: number | null
+    message: string
+  }
+}
+
+export class NotionApiError extends Error {
+  readonly code: string
+  readonly status: number | null
+
+  constructor(message: string, code: string, status: number | null = null) {
+    super(message)
+    this.name = 'NotionApiError'
+    this.code = code
+    this.status = status
+  }
 }
 
 interface NotionProp {
@@ -38,19 +71,61 @@ export function isNotionConfigured(): boolean {
   return Boolean(process.env.NOTION_API_KEY && process.env.NOTION_ACTIVITY_DB_ID)
 }
 
-/**
- * Fetches the activity database from Notion and normalizes it into the same
- * shape as `data/activities.json`. Returns `null` when Notion is not configured
- * or the request fails, so callers can fall back to the static JSON data.
- */
-export async function fetchActivitiesFromNotion(): Promise<ActivitiesPayload | null> {
-  if (!isNotionConfigured()) return null
+export function hasNotionActivityDatabase(): boolean {
+  return Boolean(process.env.NOTION_ACTIVITY_DB_ID)
+}
 
-  const apiKey = process.env.NOTION_API_KEY!
-  const databaseId = process.env.NOTION_ACTIVITY_DB_ID!
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value && typeof value === 'object' && !Array.isArray(value))
+}
 
-  try {
-    const res = await fetch(
+function isNotionPageShape(value: unknown): value is NotionPage {
+  if (!isRecord(value) || typeof value.id !== 'string' || !isRecord(value.properties)) {
+    return false
+  }
+  if (value.last_edited_time !== undefined && typeof value.last_edited_time !== 'string') {
+    return false
+  }
+  return Object.values(value.properties).every((property) => isRecord(property))
+}
+
+function normalizeNotionError(error: unknown): NotionApiError {
+  if (error instanceof NotionApiError) return error
+
+  const message = error instanceof Error ? error.message : String(error)
+  const name = error instanceof Error ? error.name : ''
+  if (name === 'TimeoutError' || name === 'AbortError') {
+    return new NotionApiError(
+      `Notion request timed out after ${NOTION_REQUEST_TIMEOUT_MS}ms`,
+      'timeout',
+    )
+  }
+
+  return new NotionApiError(message || 'Notion request failed', 'network-error')
+}
+
+function logNotionSyncFailure(error: NotionApiError) {
+  console.error(JSON.stringify({
+    scope: 'notion-activities',
+    event: 'sync-failed',
+    code: error.code,
+    status: error.status,
+    message: error.message.slice(0, 300),
+  }))
+}
+
+async function queryActivityPages(databaseId: string): Promise<NotionPage[]> {
+  const apiKey = process.env.NOTION_API_KEY
+  if (!apiKey) {
+    throw new NotionApiError('NOTION_API_KEY is not configured', 'not-configured')
+  }
+
+  const rows: NotionPage[] = []
+  const seenCursors = new Set<string>()
+  let cursor: string | undefined
+
+  do {
+    const response = await fetch(
       `https://api.notion.com/v1/databases/${databaseId}/query`,
       {
         method: 'POST',
@@ -59,14 +134,166 @@ export async function fetchActivitiesFromNotion(): Promise<ActivitiesPayload | n
           'Notion-Version': NOTION_VERSION,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ page_size: 100 }),
+        body: JSON.stringify({
+          page_size: 100,
+          ...(cursor ? { start_cursor: cursor } : {}),
+        }),
+        signal: AbortSignal.timeout(NOTION_REQUEST_TIMEOUT_MS),
       },
     )
-    if (!res.ok) return null
-    const body = (await res.json()) as { results: NotionPage[] }
-    return normalizeNotionActivities(body.results ?? [])
+
+    if (!response.ok) {
+      const detail = await response.text().catch(() => '')
+      throw new NotionApiError(
+        `Notion query failed (${response.status}): ${detail.slice(0, 300)}`,
+        'http-error',
+        response.status,
+      )
+    }
+
+    let body: unknown
+    try {
+      body = await response.json()
+    } catch {
+      throw new NotionApiError('Notion returned invalid JSON', 'invalid-response')
+    }
+
+    if (!isRecord(body) || !Array.isArray(body.results)) {
+      throw new NotionApiError('Notion response is missing results', 'invalid-response')
+    }
+
+    for (const row of body.results) {
+      if (!isNotionPageShape(row)) {
+        throw new NotionApiError('Notion response contains an invalid activity page', 'invalid-response')
+      }
+      rows.push(row)
+    }
+
+    if (typeof body.has_more !== 'boolean') {
+      throw new NotionApiError('Notion response has an invalid pagination flag', 'invalid-response')
+    }
+
+    const hasMore = body.has_more
+    if (
+      body.next_cursor !== undefined &&
+      body.next_cursor !== null &&
+      typeof body.next_cursor !== 'string'
+    ) {
+      throw new NotionApiError('Notion response has an invalid pagination cursor', 'invalid-response')
+    }
+    const nextCursor = typeof body.next_cursor === 'string' ? body.next_cursor : undefined
+    if (!hasMore) {
+      if (nextCursor) {
+        throw new NotionApiError('Notion response has an unexpected pagination cursor', 'invalid-response')
+      }
+      cursor = undefined
+      continue
+    }
+    if (!nextCursor || seenCursors.has(nextCursor)) {
+      throw new NotionApiError('Notion pagination returned an invalid cursor', 'invalid-response')
+    }
+    seenCursors.add(nextCursor)
+    cursor = nextCursor
+  } while (cursor)
+
+  return rows
+}
+
+async function fetchNotionActivitySnapshot(databaseId: string): Promise<NotionActivitySnapshot> {
+  const startedAt = Date.now()
+  try {
+    const rows = await queryActivityPages(databaseId)
+    const syncedAt = new Date().toISOString()
+    console.info(JSON.stringify({
+      scope: 'notion-activities',
+      event: 'sync-succeeded',
+      records: rows.length,
+      syncedAt,
+      durationMs: Date.now() - startedAt,
+    }))
+    return { rows, syncedAt }
+  } catch (error) {
+    const normalized = normalizeNotionError(error)
+    logNotionSyncFailure(normalized)
+    throw normalized
+  }
+}
+
+// `unstable_cache` keeps the last value available when a background
+// revalidation throws; that stale-on-error behavior is required for the
+// activity snapshot and is not guaranteed by a plain uncached fetch.
+const getCachedNotionActivitySnapshot = unstable_cache(
+  async (databaseId: string) => fetchNotionActivitySnapshot(databaseId),
+  ['rainier-notion-activity-snapshot'],
+  {
+    revalidate: NOTION_ACTIVITY_CACHE_REVALIDATE_SECONDS,
+    tags: [NOTION_ACTIVITY_CACHE_TAG],
+  },
+)
+
+export async function getNotionActivitySnapshot(): Promise<NotionActivitySnapshot> {
+  const databaseId = process.env.NOTION_ACTIVITY_DB_ID
+  if (!databaseId) {
+    throw new NotionApiError('NOTION_ACTIVITY_DB_ID is not configured', 'not-configured')
+  }
+  return getCachedNotionActivitySnapshot(databaseId)
+}
+
+/**
+ * Reads the last successful Notion snapshot and normalizes it for the current
+ * time. The cached value is raw Notion data, so a page revalidation recalculates
+ * activity states from the current clock even when the upstream is temporarily
+ * stale.
+ */
+export async function fetchActivitiesFromNotion(): Promise<ActivitiesPayload | null> {
+  if (!hasNotionActivityDatabase()) return null
+
+  try {
+    const snapshot = await getNotionActivitySnapshot()
+    return {
+      ...normalizeNotionActivities(snapshot.rows, new Date()),
+      source: 'notion',
+      syncedAt: snapshot.syncedAt,
+    }
   } catch {
+    // unstable_cache keeps serving its last successful value when a stale
+    // revalidation fails. This branch is only reached when no usable snapshot
+    // exists yet, so the caller may use the static bootstrap data.
     return null
+  }
+}
+
+export async function refreshNotionActivityCache(): Promise<NotionActivityRefreshResult> {
+  if (!hasNotionActivityDatabase()) {
+    const error = new NotionApiError('Notion is not configured', 'not-configured')
+    logNotionSyncFailure(error)
+    return {
+      status: 'failed',
+      records: null,
+      syncedAt: null,
+      error: { code: error.code, status: error.status, message: error.message },
+    }
+  }
+
+  try {
+    const snapshot = await getNotionActivitySnapshot()
+    return {
+      status: 'success',
+      records: snapshot.rows.length,
+      syncedAt: snapshot.syncedAt,
+    }
+  } catch (error) {
+    const normalized = normalizeNotionError(error)
+    return {
+      status: 'failed',
+      records: null,
+      syncedAt: null,
+      error: {
+        code: normalized.code,
+        status: normalized.status,
+        message: normalized.message,
+      },
+    }
   }
 }
 
@@ -80,7 +307,7 @@ function getProp(page: NotionPage, names: string[]): NotionProp | undefined {
 
 function textValue(page: NotionPage, names: string[]): string {
   const p = getProp(page, names)
-  const parts = p?.title ?? p?.rich_text ?? []
+  const parts = Array.isArray(p?.title) ? p.title : Array.isArray(p?.rich_text) ? p.rich_text : []
   return parts
     .map((t) => t?.plain_text ?? '')
     .join('')
@@ -89,7 +316,8 @@ function textValue(page: NotionPage, names: string[]): string {
 
 function selectValue(page: NotionPage, names: string[]): string {
   const p = getProp(page, names)
-  return p?.select?.name ?? p?.status?.name ?? ''
+  const select = p?.select?.name ?? p?.status?.name
+  return typeof select === 'string' ? select : ''
 }
 
 function urlValue(page: NotionPage, names: string[]): string {
@@ -119,8 +347,10 @@ function dateValue(page: NotionPage, names: string[]): {
   rawStart: string | null
   rawEnd: string | null
 } {
-  const start = getProp(page, names)?.date?.start ?? null
-  const end = getProp(page, names)?.date?.end ?? null
+  const startValue = getProp(page, names)?.date?.start
+  const endValue = getProp(page, names)?.date?.end
+  const start = typeof startValue === 'string' ? startValue : null
+  const end = typeof endValue === 'string' ? endValue : null
   if (!start) return { date: null, time: null, rawStart: null, rawEnd: end }
   const [datePart, timePart] = start.split('T')
   return {
@@ -237,7 +467,7 @@ function sortActivities(list: ActivityRecord[]): ActivityRecord[] {
   )
 }
 
-function normalizeNotionActivities(rows: NotionPage[]): ActivitiesPayload {
+export function normalizeNotionActivities(rows: NotionPage[], now = new Date()): ActivitiesPayload {
   const categoryMap = new Map<string, CategoryRecord>()
   const upcoming: ActivityRecord[] = []
   const partners: PartnerRecord[] = []
@@ -250,7 +480,7 @@ function normalizeNotionActivities(rows: NotionPage[]): ActivitiesPayload {
     const { date, time, rawStart, rawEnd } = dateValue(row, ['开始时间', '日期', 'Date'])
     const separateEnd = dateValue(row, ['结束时间', 'End Time', '结束日期']).rawStart
     const endAt = separateEnd ?? rawEnd
-    const resolvedState = resolveActivityState({ rawStatus, startDate: rawStart ?? date, endAt })
+    const resolvedState = resolveActivityState({ rawStatus, startDate: rawStart ?? date, endAt, now })
     if (resolvedState === 'hidden') continue
     const status: ActivityStatus = resolvedState
     const title = textValue(row, ['活动名称', '名称', 'Name', 'Title']) || '未命名活动'

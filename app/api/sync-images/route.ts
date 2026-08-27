@@ -1,4 +1,5 @@
 import { requireAdmin } from '@/lib/admin'
+import { refreshNotionActivityCache } from '@/lib/notion'
 import { syncActivityPosters } from '@/lib/notionSync'
 import { revalidateTag } from 'next/cache'
 
@@ -8,18 +9,22 @@ async function handle(request: Request) {
     return Response.json({ ok: false, error: auth.error }, { status: auth.status })
   }
 
+  let activitySync: Awaited<ReturnType<typeof refreshNotionActivityCache>> | null = null
   try {
+    activitySync = await refreshNotionActivityCache()
     const result = await syncActivityPosters()
     if (result.synced > 0) {
       revalidateTag('activities', 'max')
     }
-    return Response.json({ ok: true, data: result })
+
+    return Response.json({ ok: true, data: { ...result, activitySync } })
   } catch (err) {
     return Response.json(
       {
         ok: false,
         error: 'sync-failed',
         message: err instanceof Error ? err.message : String(err),
+        data: { activitySync },
       },
       { status: 500 },
     )

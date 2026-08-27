@@ -56,7 +56,7 @@ function getGalleryPosters(data: ActivitiesPayload): GalleryPoster[] {
     })
 }
 
-export default async function HomePage() {
+async function HomeContent() {
   const activities = await getActivitiesPayload()
   const galleryPosters = getGalleryPosters(activities)
 
@@ -179,5 +179,13 @@ export default async function HomePage() {
         <SentenceOfDay />
       </Suspense>
     </div>
+  )
+}
+
+export default function HomePage() {
+  return (
+    <Suspense fallback={null}>
+      <HomeContent />
+    </Suspense>
   )
 }

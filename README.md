@@ -37,7 +37,7 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/bui
 
 ## 内容管理（Notion CMS）
 
-活动内容以 Notion 数据库为数据源，网站每 10 分钟自动重新拉取；Notion 未配置或不可用时，自动回退到 `data/activities.json` 的静态数据。每日一句同样从 Notion 句库读取，旧的 `data/sentences.json` 已移除。
+活动内容以 Notion 数据库为上游，网站将最近一次成功读取的活动快照保存在 Next/Vercel Data Cache 中。页面访问优先读取快照，快照每 10 分钟尝试后台刷新；Notion 暂时不可用时继续使用最近一次成功数据，不会覆盖缓存。只有从未成功同步过时才回退到 `data/activities.json`，活动页会显示初始化提示。每日一句同样从 Notion 句库读取，旧的 `data/sentences.json` 已移除。
 
 ### 环境变量
 
@@ -111,14 +111,14 @@ API Key 只放在服务端环境变量中，不要使用 `NEXT_PUBLIC_` 前缀�
 
 ### 手动刷新
 
-Notion 改完后可立即刷新缓存（通常 10 分钟内也会自动生效）：
+Notion 改完后可立即标记活动缓存为待刷新（下一次访问会触发后台重新验证；通常 10 分钟内也会自动生效）：
 
 ```bash
 curl -X POST http://localhost:3000/api/revalidate \
   -H "x-admin-key: $ADMIN_PASSWORD"
 ```
 
-### 图片自动转存（Notion 传图）
+### 图片自动转存与活动快照同步
 
 运营者只需要把海报图片拖进 Notion 的「海报图片」字段，网站会通过同步任务把图片转存到 Cloudinary，并把永久链接写回「海报图片 URL」字段。
 
@@ -135,4 +135,4 @@ curl -X POST http://localhost:3000/api/sync-images \
   -H "x-admin-key: $ADMIN_PASSWORD"
 ```
 
-部署到 Vercel 后，`vercel.json` 里的 Cron 会每 10 分钟自动执行一次（需要配置 `CRON_SECRET` 环境变量用于鉴权）。
+部署到 Vercel 后，`vercel.json` 里的 Cron 会每 10 分钟触发活动快照刷新和海报同步（需要配置 `CRON_SECRET` 环境变量用于鉴权）。活动快照同步失败只会记录结构化日志并保留旧快照。

@@ -71,4 +71,6 @@ export interface ActivitiesPayload {
   categories: CategoryRecord[]
   partners: PartnerRecord[]
   tickets: TicketRecord[]
+  source?: 'notion' | 'static-fallback'
+  syncedAt?: string | null
 }

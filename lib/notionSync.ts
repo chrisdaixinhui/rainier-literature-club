@@ -1,10 +1,11 @@
 import { isCloudinaryConfigured, uploadImageToCloudinary } from './cloudinary.ts'
 
 const NOTION_VERSION = '2022-06-28'
+const NOTION_REQUEST_TIMEOUT_MS = 15_000
 
 interface NotionPage {
   id: string
-  last_edited_time: string
+  last_edited_time?: string
   properties: Record<string, NotionPropertyValue>
 }
 
@@ -45,23 +46,87 @@ function notionHeaders(): Record<string, string> {
   }
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value && typeof value === 'object' && !Array.isArray(value))
+}
+
+function isNotionPageShape(value: unknown): value is NotionPage {
+  if (!isRecord(value) || typeof value.id !== 'string' || !isRecord(value.properties)) {
+    return false
+  }
+  return value.last_edited_time === undefined || typeof value.last_edited_time === 'string'
+}
+
 async function queryActivityPages(): Promise<NotionPage[]> {
   const databaseId = process.env.NOTION_ACTIVITY_DB_ID
   if (!databaseId) throw new Error('NOTION_ACTIVITY_DB_ID is not configured')
 
-  const res = await fetch(`https://api.notion.com/v1/databases/${databaseId}/query`, {
-    method: 'POST',
-    headers: notionHeaders(),
-    body: JSON.stringify({ page_size: 100 }),
-  })
+  const pages: NotionPage[] = []
+  const seenCursors = new Set<string>()
+  let cursor: string | undefined
 
-  if (!res.ok) {
-    const detail = await res.text().catch(() => '')
-    throw new Error(`Notion query failed (${res.status}): ${detail.slice(0, 300)}`)
-  }
+  do {
+    const res = await fetch(`https://api.notion.com/v1/databases/${databaseId}/query`, {
+      method: 'POST',
+      headers: notionHeaders(),
+      body: JSON.stringify({
+        page_size: 100,
+        ...(cursor ? { start_cursor: cursor } : {}),
+      }),
+      signal: AbortSignal.timeout(NOTION_REQUEST_TIMEOUT_MS),
+    })
 
-  const body = (await res.json()) as { results: NotionPage[] }
-  return body.results ?? []
+    if (!res.ok) {
+      const detail = await res.text().catch(() => '')
+      throw new Error(`Notion query failed (${res.status}): ${detail.slice(0, 300)}`)
+    }
+
+    let body: unknown
+    try {
+      body = await res.json()
+    } catch {
+      throw new Error('Notion returned invalid JSON')
+    }
+
+    if (!isRecord(body) || !Array.isArray(body.results)) {
+      throw new Error('Notion response is missing results')
+    }
+
+    for (const page of body.results) {
+      if (!isNotionPageShape(page)) {
+        throw new Error('Notion response contains an invalid activity page')
+      }
+      pages.push(page)
+    }
+
+    if (typeof body.has_more !== 'boolean') {
+      throw new Error('Notion response has an invalid pagination flag')
+    }
+
+    const hasMore = body.has_more
+    if (
+      body.next_cursor !== undefined &&
+      body.next_cursor !== null &&
+      typeof body.next_cursor !== 'string'
+    ) {
+      throw new Error('Notion response has an invalid pagination cursor')
+    }
+    const nextCursor = typeof body.next_cursor === 'string' ? body.next_cursor : undefined
+    if (!hasMore) {
+      if (nextCursor) {
+        throw new Error('Notion response has an unexpected pagination cursor')
+      }
+      cursor = undefined
+      continue
+    }
+    if (!nextCursor || seenCursors.has(nextCursor)) {
+      throw new Error('Notion pagination returned an invalid cursor')
+    }
+    seenCursors.add(nextCursor)
+    cursor = nextCursor
+  } while (cursor)
+
+  return pages
 }
 
 function getTitle(page: NotionPage): string {
@@ -98,7 +163,7 @@ function fingerprint(page: NotionPage, file: SyncFile): string {
       return `file|${file.name}|${file.url}`
     }
   }
-  return `file|${file.name}|${page.last_edited_time}`
+  return `file|${file.name}|${page.last_edited_time ?? ''}`
 }
 
 async function updatePagePoster(pageId: string, url: string, marker: string) {
@@ -113,6 +178,7 @@ async function updatePagePoster(pageId: string, url: string, marker: string) {
         },
       },
     }),
+    signal: AbortSignal.timeout(NOTION_REQUEST_TIMEOUT_MS),
   })
 
   if (!res.ok) {
