@@ -1,33 +1,135 @@
 'use client'
 
-import { useEffect, useRef, useState, type CSSProperties } from 'react'
-import type { ActivityRecord } from '@/lib/types'
+import { useEffect, useRef, useState, type CSSProperties, type KeyboardEvent } from 'react'
+import type { ActivityRecord, PartnerRecord } from '@/lib/types'
+
+interface ShowcaseCard {
+  id: string
+  title: string
+  titleEn?: string | null
+  sourceName?: string | null
+  date?: string | null
+  time?: string | null
+  location?: string | null
+  locationDetail?: string | null
+  description?: string | null
+  poster?: string | null
+  actionUrl?: string | null
+  actionLabel: string
+  disabledActionLabel: string
+}
 
 function hasUsableUrl(url?: string | null): url is string {
   return Boolean(url && url.trim() && url.trim() !== '#')
 }
 
-function activityMeta(activity: ActivityRecord): string {
-  const schedule = [activity.date, activity.time].filter(Boolean).join(' ')
-  const place = [activity.location, activity.locationDetail].filter(Boolean).join(' · ')
+function cardMeta(card: ShowcaseCard): string {
+  const schedule = [card.date, card.time].filter(Boolean).join(' ')
+  const place = [card.location, card.locationDetail].filter(Boolean).join(' · ')
   return [schedule || '时间待公布', place || '地点待公布'].join(' · ')
+}
+
+function showcaseCards(activities: ActivityRecord[], partners: PartnerRecord[]): ShowcaseCard[] {
+  return [
+    ...activities.map((activity) => ({
+      id: `rainier-${activity.id}`,
+      title: activity.title,
+      titleEn: activity.titleEn,
+      date: activity.date,
+      time: activity.time,
+      location: activity.location,
+      locationDetail: activity.locationDetail,
+      description: activity.description,
+      poster: activity.poster,
+      actionUrl: activity.registerUrl,
+      actionLabel: '报名活动 · Register',
+      disabledActionLabel: '报名即将开放',
+    })),
+    ...partners.map((partner) => ({
+      id: `partner-${partner.id}`,
+      title: partner.eventName,
+      titleEn: partner.eventNameEn,
+      sourceName: partner.partnerName,
+      date: partner.date,
+      time: partner.time,
+      location: partner.location,
+      locationDetail: partner.locationDetail,
+      description: partner.description,
+      poster: partner.poster,
+      actionUrl: partner.url,
+      actionLabel: '了解详情 · Learn More',
+      disabledActionLabel: '详情即将开放',
+    })),
+  ]
 }
 
 const CARD_SCROLL_PHASES = 3
 const DEFAULT_POSTER_RATIO = 3 / 4
-const DESKTOP_POSTER_HEIGHT = 520
 const MIN_COPY_WIDTH = 360
 const STACK_BREAKPOINT = 900
 
+function clamp(min: number, value: number, max: number): number {
+  return Math.min(max, Math.max(min, value))
+}
+
 function availableCardWidth(viewportWidth: number): number {
-  const horizontalInset = Math.min(144, Math.max(36, viewportWidth * 0.08))
+  const horizontalInset = clamp(36, viewportWidth * 0.08, 144)
   return Math.min(viewportWidth - horizontalInset, 1240)
 }
 
-function shouldStackCard(viewportWidth: number, posterRatio: number): boolean {
-  if (viewportWidth === 0) return false
+function resolvedCardHeight(viewportWidth: number, viewportHeight: number): number {
+  if (viewportHeight === 0) return 0
+
+  if (viewportWidth <= STACK_BREAKPOINT) {
+    const deckTop = clamp(170, viewportHeight * 0.22, 220)
+    return Math.max(0, viewportHeight - deckTop - 38)
+  }
+
+  const deckTop = clamp(210, viewportHeight * 0.25, 280)
+  const deckBottom = clamp(52, viewportHeight * 0.07, 76)
+  const preferredHeight = clamp(360, viewportHeight * 0.58, 620)
+  return Math.max(0, Math.min(preferredHeight, viewportHeight - deckTop - deckBottom))
+}
+
+function shouldStackCard(viewportWidth: number, posterRatio: number, cardHeight: number): boolean {
+  if (viewportWidth === 0 || cardHeight === 0) return false
   if (viewportWidth <= STACK_BREAKPOINT) return true
-  return posterRatio * DESKTOP_POSTER_HEIGHT + MIN_COPY_WIDTH > availableCardWidth(viewportWidth)
+  return posterRatio * cardHeight + MIN_COPY_WIDTH > availableCardWidth(viewportWidth)
+}
+
+function handleBodyKeyDown(event: KeyboardEvent<HTMLDivElement>) {
+  const body = event.currentTarget
+  const maxScroll = body.scrollHeight - body.clientHeight
+  let nextScroll: number | null = null
+
+  switch (event.key) {
+    case 'ArrowDown':
+      nextScroll = body.scrollTop + 40
+      break
+    case 'ArrowUp':
+      nextScroll = body.scrollTop - 40
+      break
+    case 'PageDown':
+    case ' ':
+      nextScroll = body.scrollTop + body.clientHeight * 0.9
+      break
+    case 'PageUp':
+      nextScroll = body.scrollTop - body.clientHeight * 0.9
+      break
+    case 'Home':
+      nextScroll = 0
+      break
+    case 'End':
+      nextScroll = maxScroll
+      break
+    default:
+      return
+  }
+
+  const target = clamp(0, nextScroll, maxScroll)
+  if (Math.abs(target - body.scrollTop) < 1) return
+  event.preventDefault()
+  body.scrollTop = target
 }
 
 function cardMotion(progress: number, index: number, total: number) {
@@ -57,14 +159,23 @@ function cardMotion(progress: number, index: number, total: number) {
   return { phase, x: -112, opacity: 0, scale: 0.96 }
 }
 
-export default function UpcomingShowcase({ activities }: { activities: ActivityRecord[] }) {
+export default function UpcomingShowcase({
+  activities,
+  partners,
+}: {
+  activities: ActivityRecord[]
+  partners: PartnerRecord[]
+}) {
   const sectionRef = useRef<HTMLElement>(null)
   const frameRef = useRef<number | null>(null)
   const [progress, setProgress] = useState(0)
   const [gridProgress, setGridProgress] = useState(0)
   const [reducedMotion, setReducedMotion] = useState(false)
   const [viewportWidth, setViewportWidth] = useState(0)
+  const [viewportHeight, setViewportHeight] = useState(0)
   const [posterRatios, setPosterRatios] = useState<Record<string, number>>({})
+  const cards = showcaseCards(activities, partners)
+  const cardHeight = resolvedCardHeight(viewportWidth, viewportHeight)
 
   useEffect(() => {
     const update = () => {
@@ -73,11 +184,12 @@ export default function UpcomingShowcase({ activities }: { activities: ActivityR
       if (!section) return
 
       const bounds = section.getBoundingClientRect()
-      const viewportHeight = window.innerHeight
-      const scrollRange = Math.max(1, section.offsetHeight - viewportHeight)
+      const nextViewportHeight = window.innerHeight
+      const scrollRange = Math.max(1, section.offsetHeight - nextViewportHeight)
       setProgress(Math.max(0, Math.min(1, -bounds.top / scrollRange)))
-      setGridProgress(Math.max(0, Math.min(1, (viewportHeight - bounds.top) / viewportHeight)))
+      setGridProgress(Math.max(0, Math.min(1, (nextViewportHeight - bounds.top) / nextViewportHeight)))
       setViewportWidth(window.innerWidth)
+      setViewportHeight(nextViewportHeight)
     }
 
     const requestUpdate = () => {
@@ -103,15 +215,16 @@ export default function UpcomingShowcase({ activities }: { activities: ActivityR
     return () => media.removeEventListener('change', updatePreference)
   }, [])
 
-  if (activities.length === 0) return null
+  if (cards.length === 0) return null
 
   return (
     <section
       ref={sectionRef}
       className="home-upcoming-section"
       style={{
-        '--home-upcoming-steps': activities.length * CARD_SCROLL_PHASES + 1,
+        '--home-upcoming-steps': cards.length * CARD_SCROLL_PHASES + 1,
         '--home-upcoming-grid-progress': gridProgress,
+        ...(cardHeight > 0 ? { '--home-upcoming-card-height': `${cardHeight}px` } : {}),
       } as CSSProperties}
       aria-labelledby="home-upcoming-title"
       data-od-id="home-upcoming"
@@ -130,40 +243,40 @@ export default function UpcomingShowcase({ activities }: { activities: ActivityR
         </header>
 
         <div className="home-upcoming-deck">
-          {activities.map((activity, index) => {
-            const motion = cardMotion(progress, index, activities.length)
+          {cards.map((card, index) => {
+            const motion = cardMotion(progress, index, cards.length)
             const canInteract = reducedMotion || (motion.phase > 0.55 && motion.phase < 2.45)
-            const registrationUrl = hasUsableUrl(activity.registerUrl) ? activity.registerUrl : null
-            const posterRatio = posterRatios[activity.id] ?? DEFAULT_POSTER_RATIO
-            const isStacked = shouldStackCard(viewportWidth, posterRatio)
+            const actionUrl = hasUsableUrl(card.actionUrl) ? card.actionUrl : null
+            const posterRatio = posterRatios[card.id] ?? DEFAULT_POSTER_RATIO
+            const isStacked = shouldStackCard(viewportWidth, posterRatio, cardHeight)
 
             return (
               <article
-                key={activity.id}
+                key={card.id}
                 className={`home-upcoming-card${isStacked ? ' is-stacked' : ''}`}
                 style={{
                   '--home-upcoming-poster-ratio': posterRatio,
                   opacity: motion.opacity,
                   pointerEvents: canInteract ? 'auto' : 'none',
-                  transform: `translate3d(calc(-50% + ${motion.x}vw), 0, 0) scale(${motion.scale})`,
+                  transform: `translate3d(calc(-50% + ${motion.x}vw), -50%, 0) scale(${motion.scale})`,
                   zIndex: Math.round(100 - Math.abs(1 - motion.phase) * 10),
                 } as CSSProperties}
                 aria-hidden={!canInteract}
                 inert={!canInteract}
               >
                 <div className="home-upcoming-poster">
-                  {activity.poster ? (
+                  {card.poster ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
-                      src={activity.poster}
-                      alt={`${activity.title} 活动海报`}
+                      src={card.poster}
+                      alt={`${card.title} 活动海报`}
                       onLoad={({ currentTarget }) => {
                         const ratio = currentTarget.naturalWidth / currentTarget.naturalHeight
                         if (!Number.isFinite(ratio) || ratio <= 0) return
                         setPosterRatios((current) => (
-                          current[activity.id] === ratio
+                          current[card.id] === ratio
                             ? current
-                            : { ...current, [activity.id]: ratio }
+                            : { ...current, [card.id]: ratio }
                         ))
                       }}
                     />
@@ -175,34 +288,40 @@ export default function UpcomingShowcase({ activities }: { activities: ActivityR
                   )}
                 </div>
 
-                <div
-                  className="home-upcoming-copy"
-                  role="region"
-                  aria-label={`${activity.title} 活动详情`}
-                  tabIndex={canInteract ? 0 : -1}
-                >
-                  <div className="home-upcoming-copy-inner">
+                <div className="home-upcoming-copy">
+                  <header className="home-upcoming-copy-heading">
                     <p className="home-upcoming-count">
-                      {String(index + 1).padStart(2, '0')} / {String(activities.length).padStart(2, '0')}
+                      {String(index + 1).padStart(2, '0')} / {String(cards.length).padStart(2, '0')}
                     </p>
-                    <div>
-                      <h3>{activity.title}</h3>
-                      {activity.titleEn && <p className="home-upcoming-title-en">{activity.titleEn}</p>}
-                      <p className="home-upcoming-meta">{activityMeta(activity)}</p>
-                    </div>
-                    {activity.description && <p className="home-upcoming-description">{activity.description}</p>}
-                    {registrationUrl ? (
-                      <a className="home-upcoming-action" href={registrationUrl} target="_blank" rel="noreferrer">
-                        <span>报名活动 · Register</span>
-                        <span aria-hidden="true">↗</span>
-                      </a>
-                    ) : (
-                      <span className="home-upcoming-action is-disabled" aria-disabled="true">
-                        <span>报名即将开放</span>
-                        <span aria-hidden="true">···</span>
-                      </span>
+                    {card.sourceName && (
+                      <p className="home-upcoming-source">友社活动 · {card.sourceName}</p>
                     )}
+                    <h3>{card.title}</h3>
+                    {card.titleEn && <p className="home-upcoming-title-en">{card.titleEn}</p>}
+                    <p className="home-upcoming-meta">{cardMeta(card)}</p>
+                  </header>
+
+                  <div
+                    className="home-upcoming-body"
+                    role="region"
+                    aria-label={`${card.title} 活动正文`}
+                    tabIndex={card.description && canInteract ? 0 : -1}
+                    onKeyDown={handleBodyKeyDown}
+                  >
+                    {card.description && <p className="home-upcoming-description">{card.description}</p>}
                   </div>
+
+                  {actionUrl ? (
+                    <a className="home-upcoming-action" href={actionUrl} target="_blank" rel="noreferrer">
+                      <span>{card.actionLabel}</span>
+                      <span aria-hidden="true">↗</span>
+                    </a>
+                  ) : (
+                    <span className="home-upcoming-action is-disabled" aria-disabled="true">
+                      <span>{card.disabledActionLabel}</span>
+                      <span aria-hidden="true">···</span>
+                    </span>
+                  )}
                 </div>
               </article>
             )
@@ -210,7 +329,17 @@ export default function UpcomingShowcase({ activities }: { activities: ActivityR
         </div>
 
         <div className="home-upcoming-progress" aria-hidden="true">
-          <span style={{ transform: `scaleX(${progress})` }} />
+          {cards.map((card, index) => {
+            const segmentProgress = Math.max(0, Math.min(1, progress * cards.length - index))
+            return (
+              <span className="home-upcoming-progress-segment" key={card.id}>
+                <span
+                  className="home-upcoming-progress-fill"
+                  style={{ transform: `scaleX(${segmentProgress})` }}
+                />
+              </span>
+            )
+          })}
         </div>
       </div>
     </section>

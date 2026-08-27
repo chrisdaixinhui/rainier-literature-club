@@ -156,8 +156,8 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {activities.upcoming.length > 0 && (
-        <UpcomingShowcase activities={activities.upcoming} />
+      {(activities.upcoming.length > 0 || activities.partners.length > 0) && (
+        <UpcomingShowcase activities={activities.upcoming} partners={activities.partners} />
       )}
 
       <section
