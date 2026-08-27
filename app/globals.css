@@ -1938,11 +1938,12 @@ button, a[href], [role="button"] {
 
 .home-upcoming-card {
   --home-upcoming-poster-ratio: 0.75;
+  --home-upcoming-card-content-height: calc(var(--home-upcoming-card-height) - 2px);
   position: absolute;
   top: 50%;
   left: 50%;
   display: grid;
-  grid-template-columns: calc(var(--home-upcoming-card-height) * var(--home-upcoming-poster-ratio)) minmax(360px, 1fr);
+  grid-template-columns: calc(var(--home-upcoming-card-content-height) * var(--home-upcoming-poster-ratio)) minmax(360px, 1fr);
   width: min(calc(100% - clamp(36px, 8vw, 144px)), 1240px);
   height: var(--home-upcoming-card-height);
   overflow: hidden;
@@ -1957,7 +1958,7 @@ button, a[href], [role="button"] {
   min-height: 0;
   min-width: 0;
   overflow: hidden;
-  background: var(--home-rain);
+  background: var(--home-paper);
 }
 
 .home-upcoming-poster img {
@@ -1975,6 +1976,64 @@ button, a[href], [role="button"] {
 
 .home-upcoming-card.is-stacked .home-upcoming-poster img {
   object-position: center;
+}
+
+.home-upcoming-section.is-flow {
+  height: auto;
+  padding-block: clamp(84px, 10vw, 136px);
+}
+
+.home-upcoming-section.is-flow .home-upcoming-sticky {
+  position: relative;
+  height: auto;
+  min-height: 0;
+  overflow: visible;
+}
+
+.home-upcoming-section.is-flow .home-upcoming-heading {
+  position: static;
+  width: min(calc(100% - clamp(36px, 8vw, 144px)), 1240px);
+  margin: 0 auto clamp(28px, 5vw, 52px);
+}
+
+.home-upcoming-section.is-flow .home-upcoming-progress {
+  position: sticky;
+  top: 18px;
+  right: auto;
+  bottom: auto;
+  left: auto;
+  width: min(calc(100% - clamp(36px, 8vw, 144px)), 1240px);
+  margin: 0 auto clamp(24px, 4vw, 42px);
+}
+
+.home-upcoming-section.is-flow .home-upcoming-deck {
+  position: static;
+  display: grid;
+  width: min(calc(100% - clamp(36px, 8vw, 144px)), 1240px);
+  margin: 0 auto;
+  gap: clamp(28px, 5vw, 52px);
+}
+
+.home-upcoming-section.is-flow .home-upcoming-card,
+.home-upcoming-section.is-flow .home-upcoming-card.is-stacked {
+  position: relative;
+  inset: auto;
+  grid-template-columns: 1fr;
+  grid-template-rows: auto auto;
+  width: 100%;
+  height: auto;
+}
+
+.home-upcoming-section.is-flow .home-upcoming-poster {
+  aspect-ratio: var(--home-upcoming-poster-ratio);
+}
+
+.home-upcoming-section.is-flow .home-upcoming-poster img {
+  object-position: center;
+}
+
+.home-upcoming-section.is-flow .home-upcoming-copy {
+  height: clamp(300px, 34svh, 400px);
 }
 
 .home-upcoming-poster-placeholder {
