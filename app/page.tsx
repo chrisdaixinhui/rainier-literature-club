@@ -1,6 +1,7 @@
 import HeroRain from '@/components/HeroRain'
 import SentenceOfDay from '@/components/SentenceOfDay'
 import PhotoWall from '@/components/PhotoWall'
+import ImageCarousel from '@/components/ImageCarousel'
 
 const OFFERS = [
   {
@@ -23,31 +24,13 @@ const OFFERS = [
   },
 ]
 
-function ImgPlaceholder({ label, aspect }: { label: string; aspect?: string }) {
-  return (
-    <div
-      className={`w-full ${aspect ?? 'aspect-[4/3]'} flex flex-col items-center justify-center gap-2`}
-      style={{ background: '#E8E3DA', border: '1px solid #E6E2DA' }}
-    >
-      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#8FA499" strokeWidth="1">
-        <rect x="3" y="3" width="18" height="18" rx="1"/>
-        <circle cx="8.5" cy="8.5" r="1.5"/>
-        <polyline points="21 15 16 10 5 21"/>
-      </svg>
-      <span style={{ fontFamily: 'var(--font-label)', fontSize: '10px', color: '#8FA499', letterSpacing: '0.1em' }}>
-        {label}
-      </span>
-    </div>
-  )
-}
-
 export default function AboutPage() {
   return (
     <>
       <HeroRain />
 
       {/* ── WHO WE ARE ── centered layout */}
-      <section id="about" style={{ padding: '96px 24px', textAlign: 'center' }}>
+      <section id="about" className="px-4 md:px-6" style={{ paddingTop: '96px', paddingBottom: '96px', textAlign: 'center' }}>
         <div style={{ maxWidth: '680px', margin: '0 auto' }}>
           <p className="label-sm" style={{ marginBottom: '20px' }}>Who We Are · 我们是谁</p>
           <h2
@@ -78,15 +61,15 @@ export default function AboutPage() {
 
         {/* Photo — centered full-width banner */}
         <div style={{ maxWidth: '900px', margin: '64px auto 0' }}>
-          <ImgPlaceholder label="社群合影 · 900 × 500" aspect="aspect-[16/9] md:aspect-[21/9]" />
+          <ImageCarousel />
         </div>
       </section>
 
       {/* ── DIVIDER ── */}
-      <div style={{ borderTop: '1px solid #E6E2DA', margin: '0 24px' }} />
+      <div className="mx-4 md:mx-6" style={{ borderTop: '1px solid #E6E2DA' }} />
 
       {/* ── PULL QUOTE ── */}
-      <section style={{ padding: '80px 24px', textAlign: 'center', background: '#F2EDE4' }}>
+      <section className="px-4 md:px-6" style={{ paddingTop: '80px', paddingBottom: '80px', textAlign: 'center', background: '#F2EDE4' }}>
         <div style={{ maxWidth: '620px', margin: '0 auto' }}>
           <p
             className="pull-quote"
@@ -99,7 +82,7 @@ export default function AboutPage() {
       </section>
 
       {/* ── WHAT WE OFFER ── centered, typography-driven */}
-      <section style={{ padding: '96px 24px', textAlign: 'center' }}>
+      <section className="px-4 md:px-6" style={{ paddingTop: '96px', paddingBottom: '96px', textAlign: 'center' }}>
         <div style={{ maxWidth: '800px', margin: '0 auto' }}>
           <p className="label-sm" style={{ marginBottom: '20px' }}>What We Offer · 我们提供什么</p>
           <h2
@@ -160,7 +143,7 @@ export default function AboutPage() {
       </section>
 
       {/* ── PHOTO WALL ── */}
-      <section style={{ padding: '0 24px 80px', maxWidth: '900px', margin: '0 auto' }}>
+      <section className="px-4 md:px-6" style={{ paddingBottom: '80px', maxWidth: '900px', margin: '0 auto' }}>
         <p className="label-sm" style={{ textAlign: 'center', marginBottom: '40px' }}>往期风采集 · Event Gallery</p>
         <PhotoWall />
       </section>

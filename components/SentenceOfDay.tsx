@@ -10,8 +10,10 @@ export default function SentenceOfDay() {
   const s = getDailySentence()
   return (
     <section
+      className="px-4 md:px-6"
       style={{
-        padding: '96px 24px',
+        paddingTop: '96px',
+        paddingBottom: '96px',
         borderTop: '1px solid #E6E2DA',
         background: '#F2EDE4',
       }}

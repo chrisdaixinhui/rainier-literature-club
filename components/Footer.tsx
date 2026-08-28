@@ -3,7 +3,7 @@ import FooterClient from './FooterClient'
 export default function Footer() {
   return (
     <footer style={{ background: '#FAF8F5', borderTop: '1px solid #E6E2DA' }}>
-      <div style={{ maxWidth: '900px', margin: '0 auto', padding: '72px 24px 0' }}>
+      <div className="px-4 md:px-6" style={{ maxWidth: '900px', margin: '0 auto', paddingTop: '72px' }}>
 
         {/* ── Brand + Follow ── */}
         <div className="grid grid-cols-1 md:grid-cols-[1.4fr_1fr] gap-12 mb-16">

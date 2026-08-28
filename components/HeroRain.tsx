@@ -79,17 +79,19 @@ export default function HeroRain() {
         background: 'linear-gradient(170deg, #1a2820 0%, #243830 50%, #1a2e24 100%)',
       }}
     >
-      <canvas ref={canvasRef} style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }} aria-hidden />
+      <canvas ref={canvasRef} style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', pointerEvents: 'none' }} aria-hidden />
 
       {/* Centered content */}
       <div
+        className="px-4 md:px-10"
         style={{
           position: 'relative',
           zIndex: 10,
           width: '100%',
           maxWidth: '680px',
           margin: '0 auto',
-          padding: '120px 40px 80px',
+          paddingTop: '120px',
+          paddingBottom: '80px',
           textAlign: 'center',
         }}
       >
