@@ -1,9 +1,9 @@
 # 雨山前 Rainier Literature Society — 网站产品设计文档
 
-> **文档版本**：v0.5  
+> **文档版本**：v0.7  
 > **创建日期**：2026-05-12  
-> **更新日期**：2026-05-16  
-> **状态**：✅ Phase 0 完成 · Phase 1 内容填充阶段  
+> **更新日期**：2026-06-18  
+> **状态**：✅ Phase 0 完成 · 🔄 Phase 1 进行中  
 > **负责人**：Chris Dai
 
 ---
@@ -661,34 +661,88 @@ rainier-lit/
 - [x] 订阅 Modal（邮箱输入 + Context 全局控制）
 - [x] 响应式适配（移动端优先，所有页面）
 - [x] 极简杂志风视觉全站重构（诗意克制色系，衬线/无衬线双字体体系，全局微交互 duration-500）
-- [ ] 部署至 Vercel，绑定域名（**待完成**）
+- [x] 部署至 Vercel（rainier-literature-club.vercel.app）
 
-### Phase 1：内容填充（当前阶段）
+**新增组件（Phase 0 完成时）**：
 
-- [ ] 替换真实活动信息（海报图、详情文案）
-- [ ] 替换往期风采集真实活动照片（8 张）
-- [ ] 填入真实票价（普通票 + 支持者票）+ Eventbrite 报名链接
-- [ ] 接入 Mailchimp 邮件订阅 API（现为 UI 占位）
+| 文件 | 说明 |
+|------|------|
+| `components/ImageCarousel.tsx` | 关于我们合照轮播，4张图，4秒自动切换，crossfade，hover 暂停，dot 指示器 |
+| `components/PhotoWall.tsx` | 往期风采集，8张活动海报，Polaroid 风格，2/3 竖版比例 |
+
+---
+
+### Phase 1：内容填充 🔄 进行中（2026-06-18 更新）
+
+#### 已完成
+- [x] **移动端适配**（部分完成，待优化）
+  - 修复横向溢出截断：固定 px 宽度 → 响应式 padding（px-4 md:px-6）
+  - 修复跨平台字体 fallback（Windows Segoe UI / iOS SF / 中文 STSong 兜底）
+  - HeroRain canvas、各页面 section、Footer、SentenceOfDay 均已适配
+- [x] **删除 DonateSection 多余显示**（活动板块重复出现的捐赠区块已移除，功能搁置至后期）
+- [x] **照片上线**（首页 + 关于我们）
+  - 图床方案：**Cloudinary**（cloud name: `dpprzfwjf`）
+  - 往期风采集 PhotoWall：8张活动海报已替换（再建社群/红楼梦/乱讲PPT/冷门学科/存在主义/扎十一惹/白先勇/马克思）
+  - 关于我们 ImageCarousel：4张活动合照，自动轮播
+  - 本次为手动同步，Phase 2 目标实现第三方自动化
+
+#### 待完成
+- [ ] Mailchimp 邮件订阅 API 接入
+- [ ] 活动报名外链（Eventbrite）填入
+- [ ] AI 书友助手（Anthropic API）
 - [ ] 每日一句语料库扩充至 50–100 句
-- [ ] 捐赠 Section 正式设计（文案、接收平台、档位）
-- [ ] SEO 基础配置（OG 标签、favicon、页面 meta description）
-- [ ] 社媒账号链接填入 Footer（Instagram / 小红书 / 微信公众号）
-- [ ] 部署至 Vercel，绑定正式域名
+- [ ] 注册购买正式域名
+- [ ] SEO 基础配置（OG 标签、favicon、meta description）
+- [ ] 社媒账号链接填入 Footer
+- [ ] 捐赠按钮（搁置，后期实现）
+- [ ] 移动端适配继续优化
+
+#### 技术问题记录
+- Google Drive 直链在生产环境不稳定，已弃用，改用 Cloudinary CDN
+- 本地 git index 损坏导致持续卡死，临时方案：GitHub 网页手动 commit
+- Claude Code 在国内需配置终端代理（Clash 端口 7890），启动 alias：`cc`（已写入 `~/.zshrc`）
+- Next.js dev server 启动受网络影响，本地预览不稳定
+
+---
 
 ### Phase 2：内容自动化（+2–4 周）
 
+#### 图片运维 SOP（目标）
+- 图床统一使用 **Cloudinary**（摄影师/设计师活动后直接上传，有手机 app）
+- 复制 Cloudinary 链接 → 更新 JSON 或 Notion 数据库
+- 远期目标：Zapier 实现 Google Drive → Cloudinary 自动同步，缩短 SOP 链路
+
+#### 内容运维 SOP（目标）
+- 接入 **Notion API**，活动板块往期回顾文案从 Notion 自动同步
+- 现阶段未实践，待 Phase 1 完成后推进
+- Notion 图片直接使用 Cloudinary 外链，无需重复上传
+
+#### 功能清单
 - [ ] Notion API 接入，活动数据动态拉取
 - [ ] 往期回顾分类筛选上线
 - [ ] 友社推荐 Tab 上线
 - [ ] 周边商品页面（静态展示 + 外链）
+- [ ] Zapier 自动化：Google Drive → Cloudinary 同步（可选）
+
+---
 
 ### Phase 3：增长功能（后续迭代）
 
+#### 轻后端扩展
+- [ ] 用户登录系统（Google OAuth）
+- [ ] 用户个性化推荐（定制选书）
+  - 注册后兴趣 tag 选择
+  - 网站行为留存分析
+- [ ] 论坛 / 发帖功能
+- [ ] 活动报名自建管理
+- [ ] 捐赠功能完整实现
+
+#### 技术优化
 - [ ] 语料库管理后台（CMS 化）
 - [ ] Newsletter 模板标准化
 - [ ] SEO 深度优化（sitemap、结构化数据）
 - [ ] 无障碍优化（WCAG AA）
-- [ ] Lighthouse 性能调优
+- [ ] Lighthouse 性能调优（目标 ≥ 85）
 
 ---
 
@@ -738,20 +792,22 @@ rainier-lit/
 |------|------|------|
 | `app/layout.tsx` | ✅ | 全局布局，字体注入，ModalProvider |
 | `app/page.tsx` | ✅ | 关于我们首页（Hero + 6 个 Section） |
-| `app/activities/page.tsx` | ✅ | 活动页，三 Tab 客户端组件 |
-| `app/support/page.tsx` | ✅ | 支持我们页，票务+周边+捐赠 |
-| `app/globals.css` | ✅ | @theme 色彩/字体 token，全局 btn 样式 |
+| `app/activities/page.tsx` | ✅ | 活动页，三 Tab 客户端组件，移动端响应式 |
+| `app/support/page.tsx` | ✅ | 支持我们页，票务+周边（DonateSection 已移除） |
+| `app/globals.css` | ✅ | @theme 色彩/字体 token，全局 btn 样式，overflow-x 修复 |
 | `components/Nav.tsx` | ✅ | sticky 导航，中英双语 Tab，hamburger |
-| `components/HeroRain.tsx` | ✅ | Canvas 雨效 + Framer Motion 诗句动画 |
-| `components/Footer.tsx` | ✅ | 三段式 Footer（品牌→名片Donate→Newsletter） |
+| `components/HeroRain.tsx` | ✅ | Canvas 雨效 + Framer Motion 诗句动画，width:100% 响应式 |
+| `components/Footer.tsx` | ✅ | 三段式 Footer（品牌→名片Donate→Newsletter），响应式 padding |
 | `components/FooterClient.tsx` | ✅ | 订阅按钮（客户端，openModal） |
-| `components/SentenceOfDay.tsx` | ✅ | Quote of the Day，居中，出处右下角 |
-| `components/PhotoWall.tsx` | ✅ | 往期风采集，Polaroid 风格，8 张占位 |
-| `components/DonateSection.tsx` | ✅ | 支持我们页完整捐赠区块（占位） |
+| `components/SentenceOfDay.tsx` | ✅ | Quote of the Day，居中，出处右下角，响应式 padding |
+| `components/PhotoWall.tsx` | ✅ | 往期风采集，Polaroid 风格，8张真实活动海报，2/3 比例 |
+| `components/ImageCarousel.tsx` | ✅ | 关于我们合照轮播，4张，crossfade，hover 暂停 |
+| `components/DonateSection.tsx` | ⚠️ | 组件保留，活动板块调用已移除，功能搁置 |
 | `components/SubscribeModal.tsx` | ✅ | 邮箱订阅弹窗 |
 | `context/ModalContext.tsx` | ✅ | 全局 Modal 状态管理 |
 | `data/sentences.json` | ✅ | 10 句语料（待扩充至 50–100） |
 | `data/activities.json` | ✅ | 活动静态数据（即将举行/分类/友社/票务） |
+| `next.config.ts` | ✅ | 已添加 Cloudinary 域名白名单（drive.google.com 弃用） |
 
 ### 实际色彩 Token
 
