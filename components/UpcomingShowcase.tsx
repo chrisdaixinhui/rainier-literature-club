@@ -301,7 +301,7 @@ export default function UpcomingShowcase({
           <h2 id="home-upcoming-title">敬请期待</h2>
         </header>
 
-        {isFlowLayout && renderProgress()}
+        {isFlowLayout && viewportWidth > 700 && renderProgress()}
 
         <div className="home-upcoming-deck">
           {cards.map((card, index) => {

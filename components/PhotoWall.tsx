@@ -196,8 +196,7 @@ function PosterRow({
 
 export default function PhotoWall({ events }: PhotoWallProps) {
   const posters = events.length > 0 ? events : FALLBACK_EVENTS
-  const topRow = posters.filter((_, index) => index % 2 === 0)
-  const bottomRow = posters.filter((_, index) => index % 2 === 1)
+  const [isMobileGallery, setIsMobileGallery] = useState(false)
   const [selectedEvent, setSelectedEvent] = useState<GalleryPoster | null>(null)
   const [posterRatio, setPosterRatio] = useState(3 / 4)
   const [compactHeader, setCompactHeader] = useState(false)
@@ -206,6 +205,15 @@ export default function PhotoWall({ events }: PhotoWallProps) {
   const dialogRef = useRef<HTMLDialogElement>(null)
   const openerRef = useRef<HTMLButtonElement | null>(null)
   const detailDescriptionRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const media = window.matchMedia('(max-width: 639px)')
+    const updateLayout = () => setIsMobileGallery(media.matches)
+
+    updateLayout()
+    media.addEventListener('change', updateLayout)
+    return () => media.removeEventListener('change', updateLayout)
+  }, [])
 
   useEffect(() => {
     if (!selectedEvent) return
@@ -283,11 +291,22 @@ export default function PhotoWall({ events }: PhotoWallProps) {
   const detailStyle: GalleryStyle = {
     '--detail-poster-ratio': String(posterRatio),
   }
+  const rowCount = isMobileGallery ? 3 : 2
+  const posterRows = Array.from({ length: rowCount }, (_, rowIndex) => (
+    posters.filter((_, posterIndex) => posterIndex % rowCount === rowIndex)
+  ))
 
   return (
     <div className={`event-gallery ${selectedEvent ? 'is-detail-open' : ''}`} aria-label="雨山前往期活动海报">
-      <PosterRow events={topRow} direction="left" selectedId={selectedEvent?.id} onSelect={selectEvent} />
-      <PosterRow events={bottomRow} direction="right" selectedId={selectedEvent?.id} onSelect={selectEvent} />
+      {posterRows.map((rowEvents, rowIndex) => (
+        <PosterRow
+          key={`${rowCount}-${rowIndex}`}
+          events={rowEvents}
+          direction={rowIndex % 2 === 0 ? 'left' : 'right'}
+          selectedId={selectedEvent?.id}
+          onSelect={selectEvent}
+        />
+      ))}
 
       {selectedEvent && (
         <dialog

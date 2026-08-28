@@ -33,6 +33,7 @@ export default function OfferScrollList({ offers }: { offers: OfferItem[] }) {
     if (!scene || !list || rows.length !== 3) return
 
     const motionPreference = window.matchMedia('(prefers-reduced-motion: reduce)')
+    const mobileLayout = window.matchMedia('(max-width: 700px)')
     let frame: number | null = null
     let cancelled = false
     let collapsedHeights = [0, 0, 0]
@@ -40,6 +41,7 @@ export default function OfferScrollList({ offers }: { offers: OfferItem[] }) {
 
     const clearScrollStyles = () => {
       delete scene.dataset.scrollReady
+      list.style.removeProperty('height')
       rows.forEach((row) => {
         row.style.removeProperty('height')
         row.style.removeProperty('--offer-weight')
@@ -82,7 +84,22 @@ export default function OfferScrollList({ offers }: { offers: OfferItem[] }) {
         return Math.ceil(headingHeight + padding)
       })
 
-      expandableHeight = Math.max(0, list.clientHeight - collapsedHeights.reduce((sum, height) => sum + height, 0))
+      const collapsedTotal = collapsedHeights.reduce((sum, height) => sum + height, 0)
+
+      if (mobileLayout.matches) {
+        const descriptionHeights = rows.map((row) => {
+          const description = row.querySelector<HTMLElement>('.home-offer-desc-clip')
+          const rowGap = Number.parseFloat(window.getComputedStyle(row).rowGap) || 0
+          return Math.ceil((description?.scrollHeight ?? 0) + rowGap)
+        })
+
+        expandableHeight = Math.max(0, ...descriptionHeights)
+        list.style.height = `${collapsedTotal + expandableHeight}px`
+      } else {
+        list.style.removeProperty('height')
+        expandableHeight = Math.max(0, list.clientHeight - collapsedTotal)
+      }
+
       update()
     }
 
@@ -105,6 +122,7 @@ export default function OfferScrollList({ offers }: { offers: OfferItem[] }) {
     window.addEventListener('scroll', requestUpdate, { passive: true })
     window.addEventListener('resize', handleResize)
     motionPreference.addEventListener('change', activateScrollScene)
+    mobileLayout.addEventListener('change', handleResize)
 
     void document.fonts?.ready.then(() => {
       if (!cancelled) handleResize()
@@ -116,6 +134,7 @@ export default function OfferScrollList({ offers }: { offers: OfferItem[] }) {
       window.removeEventListener('scroll', requestUpdate)
       window.removeEventListener('resize', handleResize)
       motionPreference.removeEventListener('change', activateScrollScene)
+      mobileLayout.removeEventListener('change', handleResize)
       clearScrollStyles()
     }
   }, [])
