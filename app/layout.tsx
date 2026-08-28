@@ -1,37 +1,32 @@
 import type { Metadata } from 'next'
-import { Noto_Serif_SC, Noto_Sans_SC, Playfair_Display, Inter } from 'next/font/google'
+import localFont from 'next/font/local'
 import './globals.css'
 import Nav from '@/components/Nav'
 import Footer from '@/components/Footer'
 import SubscribeModal from '@/components/SubscribeModal'
 import { ModalProvider } from '@/context/ModalContext'
 
-const notoSerifSC = Noto_Serif_SC({
-  weight: ['400', '700'],
-  subsets: ['latin'],
+const chillHuoSong = localFont({
+  src: [
+    {
+      path: './fonts/chill-huosong-regular.woff2',
+      weight: '400',
+      style: 'normal',
+    },
+    {
+      path: './fonts/chill-huosong-bold.woff2',
+      weight: '700',
+      style: 'normal',
+    },
+    {
+      path: './fonts/chill-huosong-exbold.woff2',
+      weight: '800',
+      style: 'normal',
+    },
+  ],
   display: 'swap',
-  variable: '--font-noto-serif-sc',
-})
-
-const notoSansSC = Noto_Sans_SC({
-  weight: ['400', '500'],
-  subsets: ['latin'],
-  display: 'swap',
-  variable: '--font-noto-sans-sc',
-})
-
-const playfair = Playfair_Display({
-  weight: ['400', '600', '700'],
-  style: ['normal', 'italic'],
-  subsets: ['latin'],
-  display: 'swap',
-  variable: '--font-playfair',
-})
-
-const inter = Inter({
-  subsets: ['latin'],
-  display: 'swap',
-  variable: '--font-inter',
+  preload: false,
+  variable: '--font-chill-huosong',
 })
 
 export const metadata: Metadata = {
@@ -46,10 +41,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html
-      lang="zh"
-      className={`${notoSerifSC.variable} ${notoSansSC.variable} ${playfair.variable} ${inter.variable}`}
-    >
+    <html lang="zh" className={chillHuoSong.variable}>
       <body>
         <ModalProvider>
           <Nav />

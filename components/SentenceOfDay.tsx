@@ -1,86 +1,38 @@
-import sentences from '@/data/sentences.json'
+import { connection } from 'next/server'
+import { getSentences } from '@/lib/sentences'
+import styles from './Footer.module.css'
 
-function getDailySentence() {
+async function getDailySentence() {
+  await connection()
+  const sentences = await getSentences()
+  if (sentences.length === 0) return null
   const d = new Date()
   const seed = d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate()
   return sentences[seed % sentences.length]
 }
 
-export default function SentenceOfDay() {
-  const s = getDailySentence()
+export default async function SentenceOfDay() {
+  const sentence = await getDailySentence()
+  if (!sentence) return null
+
   return (
-    <section
-      className="px-4 md:px-6"
-      style={{
-        paddingTop: '96px',
-        paddingBottom: '96px',
-        borderTop: '1px solid #E6E2DA',
-        background: '#F2EDE4',
-      }}
-    >
-      <div style={{ maxWidth: '680px', margin: '0 auto', textAlign: 'center' }}>
-
-        {/* Label */}
-        <p className="label-sm" style={{ marginBottom: '8px' }}>
-          Quote of the Day
-        </p>
-        <p
-          style={{
-            fontFamily: 'var(--font-sans)',
-            fontSize: '11px',
-            color: '#8FA499',
-            letterSpacing: '0.08em',
-            marginBottom: '52px',
-          }}
-        >
-          每日一句
-        </p>
-
-        {/* Chinese quote */}
-        <p
-          style={{
-            fontFamily: 'var(--font-serif)',
-            fontSize: 'clamp(20px, 3vw, 28px)',
-            color: '#1C2220',
-            lineHeight: 1.95,
-            letterSpacing: '0.03em',
-            marginBottom: '24px',
-          }}
-        >
-          {s.text}
-        </p>
-
-        {/* English translation */}
-        {s.translation && (
-          <p
-            style={{
-              fontFamily: 'var(--font-display)',
-              fontStyle: 'italic',
-              fontSize: '15px',
-              color: '#68736E',
-              lineHeight: 1.75,
-              marginBottom: '40px',
-            }}
-          >
-            {s.translation}
-          </p>
-        )}
-
-        {/* Source — right-aligned */}
-        <div style={{ textAlign: 'right' }}>
-          <p
-            style={{
-              fontFamily: 'var(--font-label)',
-              fontSize: '11px',
-              color: '#8FA499',
-              letterSpacing: '0.1em',
-            }}
-          >
-            —— {s.source}
-          </p>
-        </div>
-
+    <aside className={styles.dailySentence} aria-labelledby="footer-daily-sentence-title">
+      <div>
+        <p className={styles.quoteLabel}>Quote of the Day</p>
+        <p id="footer-daily-sentence-title" className={styles.quoteLabelChinese}>每日一句</p>
       </div>
-    </section>
+
+      <div className={styles.quoteBody}>
+        <p className={styles.quoteChinese}>{sentence.text}</p>
+        {sentence.translation && (
+          <p className={styles.quoteEnglish}>{sentence.translation}</p>
+        )}
+      </div>
+
+      <div className={styles.quoteCredit}>
+        <p>—— {sentence.author}</p>
+        <p>{sentence.source}</p>
+      </div>
+    </aside>
   )
 }
