@@ -1,5 +1,6 @@
 import { Suspense } from 'react'
 import HeroRain from '@/components/HeroRain'
+import OfferScrollList from '@/components/OfferScrollList'
 import PhotoWall, { type GalleryPoster } from '@/components/PhotoWall'
 import ImageCarousel from '@/components/ImageCarousel'
 import UpcomingShowcase from '@/components/UpcomingShowcase'
@@ -124,35 +125,7 @@ async function HomeContent() {
         data-od-id="home-offers"
         aria-labelledby="home-offers-title"
       >
-        <div className="home-container">
-          <div className="home-section-meta">
-            <p>What We Offer · 我们提供什么</p>
-            <span>03 / READING AS PRACTICE</span>
-          </div>
-
-          <h2 id="home-offers-title" className="home-offers-title">我们提供什么</h2>
-          <div className="home-offer-list">
-            {OFFERS.map((offer) => (
-              <article
-                key={offer.num}
-                className="home-offer-row"
-                data-od-id={`home-offer-${offer.num}`}
-              >
-                <span className="home-offer-num">{offer.num}</span>
-                <div className="home-offer-name">
-                  <h3>{offer.title}</h3>
-                  <p>{offer.titleEn}</p>
-                </div>
-                <p className="home-offer-desc">{offer.desc}</p>
-              </article>
-            ))}
-          </div>
-
-          <a href="/activities" className="home-text-link">
-            <span>查看全部活动</span>
-            <span aria-hidden="true">↗</span>
-          </a>
-        </div>
+        <OfferScrollList offers={OFFERS} />
       </section>
 
       {(activities.upcoming.length > 0 || activities.partners.length > 0) && (
