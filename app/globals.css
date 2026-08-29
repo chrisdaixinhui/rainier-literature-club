@@ -1810,7 +1810,7 @@ button, a[href], [role="button"] {
   display: flex;
   height: 100svh;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-start;
   padding-block: clamp(76px, 9svh, 104px) clamp(20px, 4svh, 44px);
 }
 
@@ -1820,6 +1820,7 @@ button, a[href], [role="button"] {
   height: clamp(320px, 48svh, 520px);
   flex: 0 0 auto;
   flex-direction: column;
+  margin-top: auto;
 }
 
 .home-offer-row {
@@ -2534,7 +2535,6 @@ button, a[href], [role="button"] {
   }
 
   .home-offer-scroll-scene[data-scroll-ready="true"] .home-offer-frame {
-    justify-content: flex-start;
     padding-block: clamp(68px, 10svh, 84px) clamp(18px, 3svh, 28px);
   }
 
@@ -2546,7 +2546,6 @@ button, a[href], [role="button"] {
 
   .home-offer-scroll-scene[data-scroll-ready="true"] .home-offer-list {
     height: clamp(360px, 48svh, 480px);
-    margin-top: auto;
   }
 
   .home-offer-scroll-scene[data-scroll-ready="true"] .home-offer-row {
