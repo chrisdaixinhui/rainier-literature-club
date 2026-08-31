@@ -1641,27 +1641,22 @@ button, a[href], [role="button"] {
   outline-offset: 4px;
 }
 
-.home-manifesto {
-  background: var(--home-paper);
-}
-
 .home-manifesto-title {
-  max-width: 13ch;
-  padding-top: clamp(48px, 7vw, 110px);
+  max-width: none;
   font-family: var(--font-serif);
-  font-size: clamp(3.5rem, 8.4vw, 10rem);
+  font-size: clamp(3.6rem, 6.6vw, 8rem);
   font-weight: 800;
-  line-height: 1.04;
+  line-height: 0.98;
   letter-spacing: -0.065em;
   text-wrap: balance;
 }
 
 .home-manifesto-title em {
   display: block;
-  margin-top: clamp(22px, 3vw, 48px);
-  margin-left: 28%;
+  margin-top: clamp(20px, 2.4vw, 38px);
+  margin-left: 18%;
   font-family: var(--font-display);
-  font-size: 0.22em;
+  font-size: 0.21em;
   font-weight: 400;
   font-style: italic;
   line-height: 1.2;
@@ -1670,18 +1665,30 @@ button, a[href], [role="button"] {
 }
 
 .home-about {
-  padding-top: 0;
+  display: flex;
+  min-height: calc(100svh - clamp(47px, 3.7vw, 70px));
+  flex-direction: column;
+  scroll-margin-top: clamp(47px, 3.7vw, 70px);
+  padding-bottom: 0;
+}
+
+.home-about > .home-container {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
 }
 
 .home-about-grid {
   display: grid;
-  grid-template-columns: minmax(240px, 0.74fr) minmax(0, 1.26fr);
-  gap: clamp(48px, 10vw, 180px);
+  grid-template-columns: minmax(0, 3fr) minmax(320px, 2fr);
+  flex: 1;
+  gap: clamp(44px, 6vw, 100px);
+  align-items: stretch;
   border-bottom: 1px solid var(--home-rule);
-  padding-block: clamp(58px, 7vw, 110px);
+  padding-block: clamp(54px, 6vw, 96px) clamp(68px, 7vw, 112px);
 }
 
-.home-about-heading h2,
 .home-offers-title,
 .home-gallery-heading h2 {
   font-family: var(--font-serif);
@@ -1689,43 +1696,59 @@ button, a[href], [role="button"] {
   letter-spacing: -0.05em;
 }
 
-.home-about-heading h2 {
-  font-size: clamp(3.8rem, 7vw, 8.5rem);
-  line-height: 0.92;
+.home-manifesto-copy {
+  display: flex;
+  min-width: 0;
+  align-items: flex-end;
 }
 
-.home-about-heading p {
-  margin-top: 24px;
+.home-about-copy {
+  display: flex;
+  align-self: stretch;
+  flex-direction: column;
+  justify-content: flex-end;
+  border-left: 1px solid var(--home-rule);
+  padding-left: clamp(32px, 4vw, 68px);
+}
+
+.home-about-eyebrow {
+  font-family: var(--font-label);
+  font-size: 10px;
+  font-weight: 500;
+  line-height: 1.4;
+  letter-spacing: 0.17em;
+  text-transform: uppercase;
+  color: var(--home-rain);
+}
+
+.home-about-name {
+  margin-top: 18px;
   font-family: var(--font-display);
-  font-size: clamp(16px, 1.5vw, 23px);
+  font-size: clamp(16px, 1.4vw, 22px);
   font-style: italic;
   color: var(--home-rain);
 }
 
-.home-about-copy {
-  align-self: end;
-  max-width: 780px;
-}
-
-.home-about-copy > p:first-child {
+.home-about-lede {
+  margin-top: clamp(24px, 2.4vw, 38px);
   font-family: var(--font-serif);
-  font-size: clamp(22px, 2.4vw, 38px);
+  font-size: clamp(20px, 1.65vw, 29px);
   line-height: 1.62;
   letter-spacing: -0.02em;
 }
 
-.home-about-copy > p:nth-child(2) {
-  margin-top: 28px;
+.home-about-invitation {
+  margin-top: 22px;
   font-family: var(--font-serif);
-  font-size: clamp(18px, 1.7vw, 26px);
+  font-size: clamp(17px, 1.25vw, 22px);
   line-height: 1.6;
 }
 
 .home-about-copy-en {
   max-width: 56ch;
-  margin-top: 42px;
+  margin-top: 32px;
   font-family: var(--font-sans);
-  font-size: 12px;
+  font-size: 11px;
   line-height: 1.8;
   letter-spacing: 0.04em;
   color: color-mix(in oklch, var(--home-forest) 60%, var(--home-paper));
@@ -1736,7 +1759,6 @@ button, a[href], [role="button"] {
   grid-template-columns: minmax(150px, 0.34fr) minmax(0, 1.66fr);
   gap: clamp(28px, 6vw, 96px);
   align-items: start;
-  padding-top: clamp(50px, 7vw, 108px);
 }
 
 .home-carousel-caption {
@@ -2337,6 +2359,10 @@ button, a[href], [role="button"] {
     --home-upcoming-card-height: calc(100svh - clamp(170px, 22svh, 220px) - 38px);
   }
 
+  .home-about {
+    min-height: 0;
+  }
+
   .home-about-grid,
   .home-carousel-layout {
     grid-template-columns: 1fr;
@@ -2344,6 +2370,17 @@ button, a[href], [role="button"] {
 
   .home-about-grid {
     gap: 54px;
+  }
+
+  .home-manifesto-copy {
+    align-items: flex-start;
+  }
+
+  .home-about-copy {
+    border-top: 1px solid var(--home-rule);
+    border-left: 0;
+    padding-top: 40px;
+    padding-left: 0;
   }
 
   .home-carousel-layout {
@@ -2490,9 +2527,8 @@ button, a[href], [role="button"] {
 
   .home-manifesto-title {
     max-width: none;
-    padding-top: 46px;
-    font-size: clamp(3.25rem, 14vw, 4.2rem);
-    line-height: 1.12;
+    font-size: clamp(3rem, 12.5vw, 3.6rem);
+    line-height: 1.08;
   }
 
   .home-manifesto-title em {
@@ -2502,7 +2538,9 @@ button, a[href], [role="button"] {
   }
 
   .home-about {
-    padding-top: 0;
+    min-height: 0;
+    scroll-margin-top: 64px;
+    padding-block: 76px 0;
   }
 
   .home-about-grid {
@@ -2510,13 +2548,16 @@ button, a[href], [role="button"] {
     padding-block: 48px 58px;
   }
 
-  .home-about-heading h2,
   .home-offers-title,
   .home-gallery-heading h2 {
     font-size: clamp(3.5rem, 15vw, 4.5rem);
   }
 
-  .home-about-copy > p:first-child {
+  .home-about-copy {
+    padding-top: 32px;
+  }
+
+  .home-about-lede {
     font-size: 21px;
     line-height: 1.72;
   }
@@ -2526,7 +2567,7 @@ button, a[href], [role="button"] {
   }
 
   .home-carousel-layout {
-    padding-top: 50px;
+    padding-top: 0;
   }
 
   .home-offers-title {

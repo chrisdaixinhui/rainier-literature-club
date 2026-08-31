@@ -65,49 +65,45 @@ async function HomeContent() {
       <HeroRain />
 
       <section
-        className="home-manifesto home-section"
-        data-od-id="home-manifesto"
+        id="about"
+        className="home-about home-section"
+        data-od-id="home-about"
         aria-labelledby="home-manifesto-title"
       >
         <div className="home-container">
           <div className="home-section-meta">
-            <p>Manifesto · 宣言</p>
-            <span>01 / COMMON LANGUAGE</span>
-          </div>
-          <h2 id="home-manifesto-title" className="home-manifesto-title">
-            我们在异乡，<br />用中文重新彼此相认。<em>Meet again in Chinese.</em>
-          </h2>
-        </div>
-      </section>
-
-      <section
-        id="about"
-        className="home-about home-section"
-        data-od-id="home-about"
-        aria-labelledby="home-about-title"
-      >
-        <div className="home-container">
-          <div className="home-section-meta">
-            <p>Who We Are · 我们是谁</p>
-            <span>02 / ROOTED IN SEATTLE</span>
+            <p>Manifesto + Who We Are · 宣言与我们是谁</p>
+            <span>01–02 / COMMON LANGUAGE · ROOTED IN SEATTLE</span>
           </div>
 
           <div className="home-about-grid">
-            <div className="home-about-heading">
-              <h2 id="home-about-title">我们是谁</h2>
-              <p>Rainier Literature Society</p>
+            <div className="home-manifesto-copy">
+              <h2 id="home-manifesto-title" className="home-manifesto-title">
+                我们在异乡，<br />用中文重新<br />彼此相认。
+                <em>Meet again in Chinese.</em>
+              </h2>
             </div>
             <div className="home-about-copy">
-              <p>
+              <h3 className="home-about-eyebrow">Who We Are · 我们是谁</h3>
+              <p className="home-about-name">Rainier Literature Society</p>
+              <p className="home-about-lede">
                 我们是雨山前书会，根植于西雅图，是一群热爱中文文学的理想主义者。我们想和你一起，在一个英语母语者的世界，坚持中文热爱，拾起阅读习惯，培养文学兴趣。
               </p>
-              <p>我们等待每一个愿意置身于书本世界里的你。</p>
+              <p className="home-about-invitation">我们等待每一个愿意置身于书本世界里的你。</p>
               <p className="home-about-copy-en">
                 We are Rainier Literature Society, rooted in Seattle — a community of idealists who love Chinese literature.
               </p>
             </div>
           </div>
+        </div>
+      </section>
 
+      <section
+        className="home-community home-section"
+        data-od-id="home-community"
+        aria-label="社群照片与现场记录"
+      >
+        <div className="home-container">
           <div className="home-carousel-layout" data-od-id="home-community-carousel">
             <div className="home-carousel-caption">
               <span>FIELD NOTES</span>
