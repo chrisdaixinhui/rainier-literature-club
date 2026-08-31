@@ -12,19 +12,19 @@ const OFFERS = [
     num: '01',
     title: '多元共读',
     titleEn: 'Diverse Reading',
-    desc: '在西雅图线下举办各类与中文阅读相关的活动，如剧本围读、诗歌拼贴、亲子共读、大咖解读等。我们希望降低阅读门槛，和大家共建属于我们自己的阅读社群。',
+    desc: '我们把阅读做成许多种形状：围读一出戏，让角色借每个人的声音重新活起来；剪下一句诗，在纸上拼出意外的相遇；和伙伴共读，也邀请熟悉某个领域的人，把一扇原本陌生的门推开。你不必读完一本书，也不必提前准备标准答案。入口很多，路径也不相同。只要有一点好奇，就可以从喜欢的地方进来，和我们一起把阅读变成一件有人回应的事。',
   },
   {
     num: '02',
     title: '纯粹体验',
     titleEn: 'Pure Experience',
-    desc: '鼓励阅读者注重体会阅读当下的感受和乐趣，抛去"经典"和"必读"的压力，跟随兴趣，简单快乐地阅读。',
+    desc: '我们对“应该读什么”没有很大兴趣。经典不需要被供在高处，必读书目也不该变成另一种绩效。我们更想知道：哪一句让你沉默，哪一页让你想起自己的生活，哪一个人物使你不舒服，却又忍不住多看一会儿？有些书第一次读只留下困惑，几年后才忽然回来。阅读的乐趣常常就藏在这种不确定里。你不必证明自己懂了，只要诚实地说出此刻看见了什么。',
   },
   {
     num: '03',
     title: '精神重逢',
     titleEn: 'Kindred Spirits',
-    desc: '专为华人打造的知识共享平台，以书会友，与你有相似气味的人相遇及重逢。',
+    desc: '知识在这里不是用来证明谁更懂，而是用来交换。一个人带来书里的概念，另一个人带来工作、家庭或迁徙中的经验，还有人只带来一个没想完的问题；它们放到同一张桌上，往往会打开新的方向。我们相信好的谈话不急着分出输赢，而是让原本彼此陌生的生活短暂相连。一本书可以成为起点，但真正让社群继续生长的，是愿意分享的人，也是愿意认真听的人。',
   },
 ]
 
@@ -75,7 +75,7 @@ async function HomeContent() {
             <span>01 / COMMON LANGUAGE</span>
           </div>
           <h2 id="home-manifesto-title" className="home-manifesto-title">
-            我们在异乡，<br />用中文重新彼此相认。<em>Meet again in Chinese.</em>
+            我们在异乡，<br />用中文重新彼此相认。<em>A city apart. A book between us.</em>
           </h2>
         </div>
       </section>
@@ -99,9 +99,9 @@ async function HomeContent() {
             </div>
             <div className="home-about-copy">
               <p>
-                我们是雨山前书会，根植于西雅图，是一群热爱中文文学的理想主义者。我们想和你一起，在一个英语母语者的世界，坚持中文热爱，拾起阅读习惯，培养文学兴趣。
+                这座城市很擅长让人高效地生活，却不一定给人留下完整地说一句话的时间。于是我们办了雨山前：把中文、文学和彼此的注意力放回同一个空间。我们不负责定义什么是好读者，只认真对待每一次真实的阅读与回应。
               </p>
-              <p>我们等待每一个愿意置身于书本世界里的你。</p>
+              <p>你不必先准备好观点。带着一个还没想清楚的问题来，就很好。</p>
               <p className="home-about-copy-en">
                 We are Rainier Literature Society, rooted in Seattle — a community of idealists who love Chinese literature.
               </p>
@@ -111,7 +111,7 @@ async function HomeContent() {
           <div className="home-carousel-layout" data-od-id="home-community-carousel">
             <div className="home-carousel-caption">
               <span>FIELD NOTES</span>
-              <p>阅读发生在人与人之间。雨落下来的时候，我们仍在谈论一本书。</p>
+              <p>有人朗读，有人走神，有人突然说起很远以前的事。照片只留住一秒，谈话还在继续。</p>
             </div>
             <div className="home-carousel-frame">
               <ImageCarousel />

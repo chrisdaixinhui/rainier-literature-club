@@ -171,25 +171,11 @@ export default function HeroRain() {
             <h1
               id="home-hero-title"
               className="home-hero-title"
-              aria-label="在雨山前，重逢中文"
+              aria-label="在西雅图，留一张桌子给中文"
+              style={{ fontSize: 'clamp(2.2rem, 4vw, 4rem)', fontStyle: 'normal' }}
             >
-              <span>
-                <span className="home-hero-title-italic">在</span>
-                <Image
-                  className="home-hero-logo"
-                  src="/images/hero-logo.png"
-                  alt=""
-                  aria-hidden="true"
-                  width={2265}
-                  height={662}
-                  loading="eager"
-                  sizes="(max-width: 700px) 55vw, 21vw"
-                />
-              </span>
-              <span>
-                <span className="home-hero-title-italic">重逢</span>
-                <span className="home-hero-title-emphasis">中文</span>
-              </span>
+              <span style={{ display: 'block', marginLeft: 0, whiteSpace: 'nowrap' }}>在西雅图，</span>
+              <span style={{ display: 'block', marginLeft: 0, whiteSpace: 'nowrap' }}>留一张桌子给中文</span>
             </h1>
 
             <div className="home-hero-intro">
