@@ -522,7 +522,7 @@ export default function ActivitiesClient({ initialData }: { initialData: Activit
             color: '#68736E',
           }}
         >
-          在这里找到下一次相聚，也翻阅我们共同留下的阅读现场。
+          看看下一次在哪里见面，也看看我们曾经围着哪些问题坐下。
         </p>
         {initialData.source === 'static-fallback' && (
           <p

@@ -184,7 +184,7 @@ export default function SubscribeModal() {
             <div className="subscribe-postcard-message">
               <p className="subscribe-postcard-eyebrow">A NOTE FROM RAINIER</p>
               <p id="subscribe-modal-description" className="subscribe-postcard-copy">
-                把下一次相聚寄到你的邮箱。<br />活动预告、每日一句与阅读推荐，随周信抵达。
+                别让下一次相遇只靠偶然。<br />把邮箱留给我们；活动、阅读，以及一点来自西雅图的雨，会按时抵达。
               </p>
               <PostcardSender />
             </div>
