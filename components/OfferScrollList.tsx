@@ -144,8 +144,8 @@ export default function OfferScrollList({ offers }: { offers: OfferItem[] }) {
       <div className="home-offer-sticky">
         <div className="home-container home-offer-frame">
           <div className="home-section-meta">
-            <p>What We Offer · 我们提供什么</p>
-            <span>03 / READING AS PRACTICE</span>
+            <p>WHAT WE OFFER</p>
+            <span>02 / COMMUNITY READING PROGRAMS</span>
           </div>
 
           <h2 id="home-offers-title" className="home-offers-title">我们提供什么</h2>

@@ -72,8 +72,8 @@ async function HomeContent() {
       >
         <div className="home-container">
           <div className="home-section-meta">
-            <p>Manifesto + Who We Are · 宣言与我们是谁</p>
-            <span>01–02 / COMMON LANGUAGE · ROOTED IN SEATTLE</span>
+            <p>WHO WE ARE</p>
+            <span>01 / RAINIER LITERATURE SOCIETY</span>
           </div>
 
           <div className="home-about-grid">
@@ -84,15 +84,11 @@ async function HomeContent() {
               </h2>
             </div>
             <div className="home-about-copy">
-              <h3 className="home-about-eyebrow">Who We Are · 我们是谁</h3>
-              <p className="home-about-name">Rainier Literature Society</p>
+              <h3 className="home-about-heading">我们<br />是谁</h3>
               <p className="home-about-lede">
                 这座城市很擅长让人高效地生活，却不一定给人留下完整地说一句话的时间。于是我们办了雨山前：把中文、文学和彼此的注意力放回同一个空间。我们不负责定义什么是好读者，只认真对待每一次真实的阅读与回应。
               </p>
               <p className="home-about-invitation">你不必先准备好观点。带着一个还没想清楚的问题来，就很好。</p>
-              <p className="home-about-copy-en">
-                We are Rainier Literature Society, rooted in Seattle — a community of idealists who love Chinese literature.
-              </p>
             </div>
           </div>
         </div>
@@ -134,10 +130,11 @@ async function HomeContent() {
         aria-labelledby="event-gallery-heading"
       >
         <div className="home-container home-gallery-heading">
-          <div>
-            <p className="home-gallery-kicker">Past Gatherings · 往期风采集</p>
-            <h2 id="event-gallery-heading">把相聚装订成册</h2>
+          <div className="home-section-meta">
+            <p>WHAT WE&apos;VE DONE</p>
+            <span>04 / PAST GATHERINGS ARCHIVE</span>
           </div>
+          <h2 id="event-gallery-heading">把相聚装订成册</h2>
         </div>
         <div className="home-gallery-rule" aria-hidden="true" />
         <PhotoWall events={galleryPosters} />

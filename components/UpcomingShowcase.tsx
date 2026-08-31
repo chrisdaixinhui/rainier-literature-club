@@ -289,17 +289,23 @@ export default function UpcomingShowcase({
       data-od-id="home-upcoming"
     >
       <div className="home-upcoming-sticky">
+        <div className="home-container home-upcoming-heading-group">
+          <div className="home-section-meta">
+            <p>WHAT&apos;S COMING</p>
+            <span>03 / UPCOMING GATHERINGS</span>
+          </div>
+
+          <header className="home-upcoming-heading">
+            <h2 id="home-upcoming-title">敬请期待</h2>
+          </header>
+        </div>
+
         <div className="home-upcoming-grid" aria-hidden="true">
           <span className="home-upcoming-grid-layer home-upcoming-grid-horizontal home-upcoming-grid-from-left" />
           <span className="home-upcoming-grid-layer home-upcoming-grid-horizontal home-upcoming-grid-from-right" />
           <span className="home-upcoming-grid-layer home-upcoming-grid-vertical home-upcoming-grid-from-top" />
           <span className="home-upcoming-grid-layer home-upcoming-grid-vertical home-upcoming-grid-from-bottom" />
         </div>
-
-        <header className="home-upcoming-heading">
-          <p>What’s coming…</p>
-          <h2 id="home-upcoming-title">敬请期待</h2>
-        </header>
 
         {isFlowLayout && viewportWidth > 700 && renderProgress()}
 
