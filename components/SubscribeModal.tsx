@@ -3,6 +3,8 @@
 import Image from 'next/image'
 import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react'
 import { useModal } from '@/context/ModalContext'
+import type { Dictionary } from '@/lib/i18n-types'
+import type { Locale } from '@/lib/i18n-routing'
 
 type SubscribeStatus = 'idle' | 'submitting' | 'success' | 'error'
 
@@ -24,7 +26,13 @@ function PostcardSender() {
   )
 }
 
-export default function SubscribeModal() {
+export default function SubscribeModal({
+  locale,
+  copy,
+}: {
+  locale: Locale
+  copy: Dictionary['subscribe']
+}) {
   const { isOpen, closeModal } = useModal()
   const inputRef = useRef<HTMLInputElement>(null)
   const modalRef = useRef<HTMLElement>(null)
@@ -104,20 +112,20 @@ export default function SubscribeModal() {
       const response = await fetch('/api/subscribe', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email, locale }),
       })
       const result = await response.json()
 
       if (!response.ok) {
-        throw new Error(result.error || '订阅失败，请稍后再试。')
+        throw new Error(result.error || copy.fallbackError)
       }
 
       setStatus('success')
-      setMessage(result.message || '请查收确认邮件，完成订阅。')
+      setMessage(result.message || copy.fallbackSuccess)
       setEmail('')
     } catch (error) {
       setStatus('error')
-      setMessage(error instanceof Error ? error.message : '订阅失败，请稍后再试。')
+      setMessage(error instanceof Error ? error.message : copy.fallbackError)
     }
   }
 
@@ -142,7 +150,7 @@ export default function SubscribeModal() {
           type="button"
           className="subscribe-modal-close"
           onClick={handleClose}
-          aria-label="关闭订阅弹窗"
+          aria-label={copy.close}
         >
           <span aria-hidden="true" />
           <span aria-hidden="true" />
@@ -161,20 +169,20 @@ export default function SubscribeModal() {
         <header className="subscribe-postcard-heading">
           <p>RAINIER LETTERS · SEATTLE</p>
           <h2 id="subscribe-modal-title">POSTCARD</h2>
-          <span>每周通讯 · WEEKLY LETTER</span>
+          <span>{copy.weekly}</span>
         </header>
 
         {status === 'success' ? (
           <div className="subscribe-postcard-body subscribe-postcard-success" role="status" aria-live="polite">
             <div className="subscribe-postcard-message">
-              <p className="subscribe-postcard-eyebrow">FROM SEATTLE, WITH WORDS</p>
-              <h3>确认信已寄出。</h3>
+              <p className="subscribe-postcard-eyebrow">{copy.successEyebrow}</p>
+              <h3>{copy.successTitle}</h3>
               <PostcardSender />
             </div>
             <div className="subscribe-postcard-recipient">
               <p id="subscribe-modal-description">{message}</p>
               <button type="button" className="subscribe-modal-return" onClick={handleClose}>
-                <span>继续浏览</span>
+                <span>{copy.continue}</span>
                 <span aria-hidden="true">→</span>
               </button>
             </div>
@@ -182,10 +190,13 @@ export default function SubscribeModal() {
         ) : (
           <div className="subscribe-postcard-body">
             <div className="subscribe-postcard-message">
-              <p className="subscribe-postcard-eyebrow">A NOTE FROM RAINIER</p>
-              <p id="subscribe-modal-description" className="subscribe-postcard-copy">
-                别让下一次相遇只靠偶然。<br />把邮箱留给我们；活动、阅读，以及一点来自西雅图的雨，会按时抵达。
+              <p className="subscribe-postcard-eyebrow">{copy.noteEyebrow}</p>
+              <p id="subscribe-modal-description" className="subscribe-postcard-copy" style={{ whiteSpace: 'pre-line' }}>
+                {copy.pitch}
               </p>
+              {copy.englishNotice && (
+                <p className="subscribe-postcard-language-note">{copy.englishNotice}</p>
+              )}
               <PostcardSender />
             </div>
 
@@ -224,10 +235,10 @@ export default function SubscribeModal() {
               )}
 
               <div className="subscribe-postcard-send">
-                <p id="subscribe-privacy">只分享精心策划的内容，可随时取消订阅。</p>
+                <p id="subscribe-privacy">{copy.privacy}</p>
                 <button type="submit" disabled={status === 'submitting'}>
-                  <span>{status === 'submitting' ? '寄送中…' : '寄出'}</span>
-                  <small>{status === 'submitting' ? 'SENDING' : 'SUBSCRIBE'}</small>
+                  <span>{status === 'submitting' ? copy.sending : copy.submit}</span>
+                  <small>{status === 'submitting' ? copy.sendingAccent : copy.submitAccent}</small>
                   <b aria-hidden="true">→</b>
                 </button>
               </div>

@@ -1,7 +1,8 @@
 'use client'
 
 import { useMemo, useState } from 'react'
-import type { ActivitiesPayload, ActivityRecord, PartnerRecord } from '@/lib/types'
+import type { ActivitiesPayload, ActivityLanguage, ActivityRecord, PartnerRecord } from '@/lib/types'
+import type { Dictionary } from '@/lib/i18n-types'
 
 interface PinnedCardData {
   id: string
@@ -19,6 +20,7 @@ interface PinnedCardData {
   href?: string | null
   comingSoon?: boolean
   partner?: boolean
+  activityLanguage?: ActivityLanguage | null
 }
 
 interface PastActivity {
@@ -133,11 +135,19 @@ function comparePastDates(a: PastActivity, b: PastActivity): number {
   return a.event.title.localeCompare(b.event.title)
 }
 
-function PinnedActivityCard({ item }: { item: PinnedCardData }) {
+function PinnedActivityCard({
+  item,
+  copy,
+  activityLanguageCopy,
+}: {
+  item: PinnedCardData
+  copy: Dictionary['activities']
+  activityLanguageCopy: Dictionary['activityLanguage']
+}) {
   const accent = item.partner ? '#65756E' : '#2E463D'
   const actionLabel = item.partner
-    ? '了解详情 · Learn More'
-    : '报名活动 · Register'
+    ? copy.learnMore
+    : copy.register
   const schedule = [item.date, item.time].filter(Boolean).join(' ')
   const place = [item.location, item.locationDetail].filter(Boolean).join(' · ')
 
@@ -154,12 +164,12 @@ function PinnedActivityCard({ item }: { item: PinnedCardData }) {
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={item.poster}
-            alt={`${item.title} 活动海报`}
+            alt={`${item.title} ${copy.posterAlt}`}
             loading="lazy"
             style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
           />
         ) : (
-          <ImgPlaceholder label="活动海报 · 1250 × 1667" style={{ position: 'absolute', inset: 0 }} />
+          <ImgPlaceholder label={copy.posterPlaceholder} style={{ position: 'absolute', inset: 0 }} />
         )}
       </div>
 
@@ -196,7 +206,21 @@ function PinnedActivityCard({ item }: { item: PinnedCardData }) {
                 padding: '5px 12px',
               }}
             >
-              日期待定 · COMING SOON
+              {copy.comingSoon}
+            </span>
+          )}
+          {item.activityLanguage && (
+            <span
+              style={{
+                fontFamily: 'var(--font-label)',
+                fontSize: '10px',
+                letterSpacing: '0.12em',
+                color: '#65756E',
+                background: '#65756E12',
+                padding: '5px 12px',
+              }}
+            >
+              {activityLanguageCopy[item.activityLanguage]}
             </span>
           )}
         </div>
@@ -249,7 +273,7 @@ function PinnedActivityCard({ item }: { item: PinnedCardData }) {
               color: '#68736E',
             }}
           >
-            {schedule || '时间待公布'} · {place || '地点待公布'}
+            {schedule || copy.timeTba} · {place || copy.placeTba}
           </p>
         </div>
 
@@ -269,7 +293,7 @@ function PinnedActivityCard({ item }: { item: PinnedCardData }) {
             </a>
           ) : (
             <span className="btn-outline" aria-disabled="true" style={{ cursor: 'not-allowed', opacity: 0.5 }}>
-              {item.partner ? '详情即将开放' : '报名即将开放'}
+              {item.partner ? copy.learnMoreDisabled : copy.registerDisabled}
             </span>
           )}
         </div>
@@ -282,10 +306,14 @@ function EventRow({
   event,
   categoryName,
   categoryColor,
+  copy,
+  activityLanguageCopy,
 }: {
   event: ActivityRecord
   categoryName: string
   categoryColor: string
+  copy: Dictionary['activities']
+  activityLanguageCopy: Dictionary['activityLanguage']
 }) {
   const [open, setOpen] = useState(false)
   const detailsId = `event-details-${event.id}`
@@ -299,7 +327,7 @@ function EventRow({
           className="event-row-poster-toggle"
           aria-expanded={open}
           aria-controls={detailsId}
-          aria-label={`${open ? '收起' : '展开'} ${event.title} 活动详情`}
+          aria-label={`${open ? copy.collapse : copy.expand} ${event.title} ${copy.details}`}
           onClick={toggleOpen}
         >
           {event.poster ? (
@@ -309,14 +337,14 @@ function EventRow({
                 src={cloudinaryPastPosterUrl(event.poster, 640)}
                 srcSet={pastPosterSrcSet(event.poster)}
                 sizes="(max-width: 640px) 35vw, 320px"
-                alt={`${event.title} 活动海报`}
+                alt={`${event.title} ${copy.posterAlt}`}
                 loading="lazy"
                 decoding="async"
                 style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
               />
             </div>
           ) : (
-            <ImgPlaceholder label={`海报 · ${event.title}`} style={{ aspectRatio: '1250 / 1667', minHeight: '160px' }} />
+            <ImgPlaceholder label={`${copy.posterAlt} · ${event.title}`} style={{ aspectRatio: '1250 / 1667', minHeight: '160px' }} />
           )}
         </button>
 
@@ -341,6 +369,18 @@ function EventRow({
               >
                 {event.subType || categoryName}
               </span>
+              {event.activityLanguage && (
+                <span
+                  style={{
+                    fontFamily: 'var(--font-label)',
+                    fontSize: '10px',
+                    letterSpacing: '0.1em',
+                    color: '#65756E',
+                  }}
+                >
+                  {activityLanguageCopy[event.activityLanguage]}
+                </span>
+              )}
             </div>
             <h3
               style={{
@@ -361,7 +401,7 @@ function EventRow({
             )}
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '16px' }}>
               <span style={{ fontFamily: 'var(--font-label)', fontSize: '10px', color: '#8FA499', letterSpacing: '0.12em' }}>
-                {open ? '收起' : '展开详情'}
+                {open ? copy.collapse : copy.expand}
               </span>
               <svg
                 width="12"
@@ -377,7 +417,12 @@ function EventRow({
             </div>
           </button>
 
-          <div id={detailsId} className={`accordion-content ${open ? 'open' : ''}`}>
+          <div
+            id={detailsId}
+            className={`accordion-content ${open ? 'open' : ''}`}
+            aria-hidden={!open}
+            inert={!open}
+          >
             <div className="event-row-details">
               <Paragraphs text={event.description} gap={14} style={{ marginBottom: event.reviewUrl ? '20px' : 0 }} />
               {hasUsableUrl(event.reviewUrl) && (
@@ -394,7 +439,7 @@ function EventRow({
                     textUnderlineOffset: '3px',
                   }}
                 >
-                  查看活动回顾 →
+                  {copy.review}
                 </a>
               )}
             </div>
@@ -405,12 +450,12 @@ function EventRow({
   )
 }
 
-function activityToPinnedCard(event: ActivityRecord): PinnedCardData {
+function activityToPinnedCard(event: ActivityRecord, copy: Dictionary['activities']): PinnedCardData {
   return {
     id: event.id,
     title: event.title,
     titleEn: event.titleEn,
-    sourceLabel: '雨山前活动 · UPCOMING',
+    sourceLabel: copy.rainierSource,
     date: event.date,
     time: event.time,
     location: event.location,
@@ -420,15 +465,16 @@ function activityToPinnedCard(event: ActivityRecord): PinnedCardData {
     poster: event.poster,
     href: event.registerUrl,
     comingSoon: event.comingSoon,
+    activityLanguage: event.activityLanguage,
   }
 }
 
-function partnerToPinnedCard(partner: PartnerRecord): PinnedCardData {
+function partnerToPinnedCard(partner: PartnerRecord, copy: Dictionary['activities']): PinnedCardData {
   return {
     id: partner.id,
     title: partner.eventName,
     titleEn: partner.eventNameEn,
-    sourceLabel: '友社推荐 · PARTNER PICK',
+    sourceLabel: copy.partnerSource,
     sourceName: partner.partnerName,
     date: partner.date,
     time: partner.time,
@@ -440,15 +486,24 @@ function partnerToPinnedCard(partner: PartnerRecord): PinnedCardData {
     href: partner.url,
     comingSoon: partner.comingSoon,
     partner: true,
+    activityLanguage: partner.activityLanguage,
   }
 }
 
-export default function ActivitiesClient({ initialData }: { initialData: ActivitiesPayload }) {
+export default function ActivitiesClient({
+  initialData,
+  copy,
+  activityLanguageCopy,
+}: {
+  initialData: ActivitiesPayload
+  copy: Dictionary['activities']
+  activityLanguageCopy: Dictionary['activityLanguage']
+}) {
   const [selectedCategory, setSelectedCategory] = useState<string>('all')
 
   const rainierPinned = useMemo(
-    () => [...initialData.upcoming].sort((a, b) => compareUpcomingDates(a, b)).map(activityToPinnedCard),
-    [initialData.upcoming],
+    () => [...initialData.upcoming].sort((a, b) => compareUpcomingDates(a, b)).map((event) => activityToPinnedCard(event, copy)),
+    [copy, initialData.upcoming],
   )
 
   const partnerPinned = useMemo(
@@ -456,8 +511,8 @@ export default function ActivitiesClient({ initialData }: { initialData: Activit
       initialData.partners
         .filter((partner) => partner.status !== 'past')
         .sort((a, b) => compareUpcomingDates({ date: a.date, title: a.eventName }, { date: b.date, title: b.eventName }))
-        .map(partnerToPinnedCard),
-    [initialData.partners],
+        .map((partner) => partnerToPinnedCard(partner, copy)),
+    [copy, initialData.partners],
   )
 
   const pastActivities = useMemo(
@@ -499,7 +554,7 @@ export default function ActivitiesClient({ initialData }: { initialData: Activit
         }}
       >
         <p className="label-sm" style={{ marginBottom: '16px' }}>
-          Activities · 活动
+          {copy.eyebrow}
         </p>
         <h1
           style={{
@@ -510,7 +565,7 @@ export default function ActivitiesClient({ initialData }: { initialData: Activit
             color: '#1C2220',
           }}
         >
-          我们的活动
+          {copy.title}
         </h1>
         <p
           style={{
@@ -522,7 +577,7 @@ export default function ActivitiesClient({ initialData }: { initialData: Activit
             color: '#68736E',
           }}
         >
-          看看下一次在哪里见面，也看看我们曾经围着哪些问题坐下。
+          {copy.intro}
         </p>
         {initialData.source === 'static-fallback' && (
           <p
@@ -537,7 +592,7 @@ export default function ActivitiesClient({ initialData }: { initialData: Activit
               color: '#8A6A42',
             }}
           >
-            内容正在初始化，当前显示内置快照 · INITIALIZING FROM STATIC SNAPSHOT
+            {copy.fallbackNotice}
           </p>
         )}
       </header>
@@ -552,30 +607,30 @@ export default function ActivitiesClient({ initialData }: { initialData: Activit
         <section aria-labelledby="rainier-upcoming-heading">
           <div style={{ marginBottom: '36px' }}>
             <p className="label-sm" style={{ marginBottom: '12px' }}>
-              Pinned · 置顶
+              {copy.pinnedEyebrow}
             </p>
             <h2
               id="rainier-upcoming-heading"
               style={{ fontFamily: 'var(--font-serif)', fontSize: 'clamp(26px, 4vw, 40px)', fontWeight: 700, color: '#1C2220' }}
             >
-              雨山前活动
+              {copy.rainierHeading}
             </h2>
             <p style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: '14px', color: '#8FA499', marginTop: '8px' }}>
-              Upcoming by Rainier Literature Society
+              {copy.rainierAccent}
             </p>
           </div>
 
           {rainierPinned.length > 0 ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '64px' }}>
               {rainierPinned.map((item) => (
-                <PinnedActivityCard key={item.id} item={item} />
+                <PinnedActivityCard key={item.id} item={item} copy={copy} activityLanguageCopy={activityLanguageCopy} />
               ))}
             </div>
           ) : (
             <div style={{ padding: '72px 24px', textAlign: 'center', border: '1px dashed #D8D2C8' }}>
               <p style={{ fontSize: '40px', opacity: 0.15, marginBottom: '14px' }}>🌧️</p>
               <p style={{ fontFamily: 'var(--font-sans)', color: '#8FA499', fontSize: '14px' }}>
-                新活动正在路上 · More gatherings coming soon
+                {copy.noUpcoming}
               </p>
             </div>
           )}
@@ -585,22 +640,22 @@ export default function ActivitiesClient({ initialData }: { initialData: Activit
           <section aria-labelledby="partner-heading" style={{ marginTop: '96px', paddingTop: '72px', borderTop: '1px solid #D8D2C8' }}>
             <div style={{ marginBottom: '36px' }}>
               <p className="label-sm" style={{ marginBottom: '12px' }}>
-                Partner Picks · 置顶
+                {copy.partnerEyebrow}
               </p>
               <h2
                 id="partner-heading"
                 style={{ fontFamily: 'var(--font-serif)', fontSize: 'clamp(26px, 4vw, 40px)', fontWeight: 700, color: '#1C2220' }}
               >
-                友社推荐
+                {copy.partnerHeading}
               </h2>
               <p style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: '14px', color: '#8FA499', marginTop: '8px' }}>
-                Events from Friends & Partners
+                {copy.partnerAccent}
               </p>
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '64px' }}>
               {partnerPinned.map((item) => (
-                <PinnedActivityCard key={item.id} item={item} />
+                <PinnedActivityCard key={item.id} item={item} copy={copy} activityLanguageCopy={activityLanguageCopy} />
               ))}
             </div>
           </section>
@@ -609,23 +664,23 @@ export default function ActivitiesClient({ initialData }: { initialData: Activit
         <section aria-labelledby="past-events-heading" style={{ marginTop: '104px', paddingTop: '72px', borderTop: '1px solid #D8D2C8' }}>
           <div style={{ marginBottom: '32px' }}>
             <p className="label-sm" style={{ marginBottom: '12px' }}>
-              Archive · 往期
+              {copy.archiveEyebrow}
             </p>
             <h2
               id="past-events-heading"
               style={{ fontFamily: 'var(--font-serif)', fontSize: 'clamp(26px, 4vw, 40px)', fontWeight: 700, color: '#1C2220' }}
             >
-              往期活动
+              {copy.archiveHeading}
             </h2>
             <p style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: '14px', color: '#8FA499', marginTop: '8px' }}>
-              Past Events
+              {copy.archiveAccent}
             </p>
           </div>
 
           {pastActivities.length > 0 ? (
             <>
               <div
-                aria-label="往期活动分类"
+                aria-label={copy.categoryFilterAria}
                 style={{ display: 'flex', gap: '10px', overflowX: 'auto', paddingBottom: '12px', marginBottom: '28px' }}
               >
                 <button
@@ -644,7 +699,7 @@ export default function ActivitiesClient({ initialData }: { initialData: Activit
                     cursor: 'pointer',
                   }}
                 >
-                  全部 · ALL
+                  {copy.allCategories}
                 </button>
                 {pastCategories.map((category) => {
                   const active = selectedCategory === category.id
@@ -679,13 +734,15 @@ export default function ActivitiesClient({ initialData }: { initialData: Activit
                     event={activity.event}
                     categoryName={activity.categoryName}
                     categoryColor={activity.categoryColor}
+                    copy={copy}
+                    activityLanguageCopy={activityLanguageCopy}
                   />
                 ))}
               </div>
             </>
           ) : (
             <div style={{ padding: '64px 24px', textAlign: 'center', border: '1px dashed #D8D2C8' }}>
-              <p style={{ fontFamily: 'var(--font-sans)', color: '#8FA499', fontSize: '14px' }}>往期内容整理中</p>
+              <p style={{ fontFamily: 'var(--font-sans)', color: '#8FA499', fontSize: '14px' }}>{copy.noPast}</p>
             </div>
           )}
         </section>

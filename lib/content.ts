@@ -7,14 +7,17 @@ import {
 import type { NotionActivitySnapshot } from './notion'
 import type {
   ActivitiesPayload,
+  ActivityLanguage,
   ActivityRecord,
   ActivityStatus,
   CategoryRecord,
   PartnerRecord,
   TicketRecord,
 } from './types'
+import type { Locale } from './i18n-routing'
 import staticData from '../data/activities.json'
 import { resolveActivityState } from './activityStatus'
+import { localizeActivitiesPayload } from './activityPublication'
 
 /**
  * Single entry point for activity content.
@@ -25,7 +28,7 @@ import { resolveActivityState } from './activityStatus'
  * the durable Data Cache. Static data is only used when no successful snapshot
  * has ever been stored.
  */
-export async function getActivitiesPayload(): Promise<ActivitiesPayload> {
+export async function getActivitiesPayload(locale: Locale = 'zh'): Promise<ActivitiesPayload> {
   await connection()
 
   const hasDatabase = hasNotionActivityDatabase()
@@ -40,11 +43,11 @@ export async function getActivitiesPayload(): Promise<ActivitiesPayload> {
   }
 
   if (snapshot) {
-    return {
+    return localizeActivitiesPayload({
       ...normalizeNotionActivities(snapshot.rows, new Date()),
       source: 'notion',
       syncedAt: snapshot.syncedAt,
-    }
+    }, locale)
   }
 
   console.warn(JSON.stringify({
@@ -53,15 +56,16 @@ export async function getActivitiesPayload(): Promise<ActivitiesPayload> {
     reason: hasDatabase ? 'no-successful-snapshot' : 'not-configured',
   }))
 
-  return {
+  return localizeActivitiesPayload({
     ...normalizeStaticData(staticData as unknown as StaticDataShape),
     source: 'static-fallback',
     syncedAt: null,
-  }
+  }, locale)
 }
 
 interface StaticActivityInput {
   id?: string
+  categoryId?: string | null
   title?: string
   titleEn?: string | null
   subType?: string | null
@@ -70,6 +74,8 @@ interface StaticActivityInput {
   endAt?: string | null
   location?: string | null
   locationDetail?: string | null
+  locationEn?: string | null
+  locationDetailEn?: string | null
   description?: string | null
   descriptionEn?: string | null
   poster?: string | null
@@ -80,6 +86,8 @@ interface StaticActivityInput {
   supporterPerks?: string | null
   comingSoon?: boolean
   featured?: boolean
+  publishedEn?: boolean
+  activityLanguage?: ActivityLanguage | null
   status?: ActivityStatus
 }
 
@@ -106,11 +114,15 @@ interface StaticPartnerInput {
   endAt?: string | null
   location?: string | null
   locationDetail?: string | null
+  locationEn?: string | null
+  locationDetailEn?: string | null
   description?: string | null
   descriptionEn?: string | null
   poster?: string | null
   url?: string | null
   comingSoon?: boolean
+  publishedEn?: boolean
+  activityLanguage?: ActivityLanguage | null
   status?: ActivityStatus
 }
 
@@ -118,15 +130,20 @@ interface StaticTicketInput {
   id?: string
   activityId?: string | null
   title?: string
+  titleEn?: string | null
   date?: string | null
   time?: string | null
   location?: string | null
+  locationEn?: string | null
   generalPrice?: number | null
   generalUrl?: string | null
   supporterPrice?: number | null
   supporterUrl?: string | null
   supporterPerks?: string | null
+  supporterPerksEn?: string | null
   comingSoon?: boolean
+  publishedEn?: boolean
+  activityLanguage?: ActivityLanguage | null
 }
 
 interface StaticDataShape {
@@ -139,6 +156,7 @@ interface StaticDataShape {
 function toActivity(
   ev: StaticActivityInput,
   fallbackStatus: ActivityStatus = 'upcoming',
+  categoryId: string | null = ev.categoryId ?? null,
 ): ActivityRecord | null {
   const rawStatus = ev.status ?? (ev.comingSoon ? 'coming_soon' : fallbackStatus)
   const status = resolveActivityState({ rawStatus, startDate: ev.date, endAt: ev.endAt })
@@ -146,6 +164,7 @@ function toActivity(
 
   return {
     id: String(ev.id ?? ''),
+    categoryId,
     title: String(ev.title ?? ''),
     titleEn: ev.titleEn ?? null,
     subType: ev.subType ?? null,
@@ -154,12 +173,16 @@ function toActivity(
     endAt: ev.endAt ?? null,
     location: ev.location ?? null,
     locationDetail: ev.locationDetail ?? null,
+    locationEn: ev.locationEn ?? null,
+    locationDetailEn: ev.locationDetailEn ?? null,
     description: ev.description ?? null,
     descriptionEn: ev.descriptionEn ?? null,
     poster: ev.poster ?? null,
     registerUrl: ev.registerUrl ?? null,
     reviewUrl: ev.reviewUrl ?? null,
     featured: Boolean(ev.featured),
+    publishedEn: Boolean(ev.publishedEn),
+    activityLanguage: ev.activityLanguage ?? null,
     comingSoon: status === 'coming_soon',
     status,
   }
@@ -176,7 +199,7 @@ function normalizeStaticData(data: StaticDataShape): ActivitiesPayload {
     textColor: String(cat.textColor ?? '#ffffff'),
     comingSoon: Boolean(cat.comingSoon),
     events: (cat.events ?? [])
-      .map((ev) => toActivity(ev))
+      .map((ev) => toActivity(ev, 'upcoming', String(cat.id ?? '')))
       .filter((ev): ev is ActivityRecord => ev !== null),
   }))
 
@@ -196,11 +219,15 @@ function normalizeStaticData(data: StaticDataShape): ActivitiesPayload {
       endAt: p.endAt ?? null,
       location: p.location ?? null,
       locationDetail: p.locationDetail ?? null,
+      locationEn: p.locationEn ?? null,
+      locationDetailEn: p.locationDetailEn ?? null,
       description: p.description ?? null,
       descriptionEn: p.descriptionEn ?? null,
       poster: p.poster ?? null,
       url: p.url ?? null,
       comingSoon: status === 'coming_soon',
+      publishedEn: Boolean(p.publishedEn),
+      activityLanguage: p.activityLanguage ?? null,
       status,
     }]
   })
@@ -216,15 +243,20 @@ function normalizeStaticData(data: StaticDataShape): ActivitiesPayload {
       id: String(t.id ?? ''),
       activityId: t.activityId ?? null,
       title: String(t.title ?? ''),
+      titleEn: t.titleEn ?? null,
       date: t.date ?? null,
       time: t.time ?? null,
       location: t.location ?? null,
+      locationEn: t.locationEn ?? null,
       generalPrice: t.generalPrice ?? null,
       generalUrl: t.generalUrl ?? null,
       supporterPrice: t.supporterPrice ?? null,
       supporterUrl: t.supporterUrl ?? null,
       supporterPerks: t.supporterPerks ?? null,
+      supporterPerksEn: t.supporterPerksEn ?? null,
       comingSoon: status === 'coming_soon',
+      publishedEn: Boolean(t.publishedEn),
+      activityLanguage: t.activityLanguage ?? null,
     }]
   })
 

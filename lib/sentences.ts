@@ -1,4 +1,5 @@
 import { cacheLife, cacheTag } from 'next/cache'
+import type { Locale } from './i18n-routing'
 
 const NOTION_VERSION = '2022-06-28'
 export interface SentenceRecord {
@@ -6,6 +7,8 @@ export interface SentenceRecord {
   translation: string
   author: string
   source: string
+  authorEn: string
+  sourceEn: string
 }
 
 interface NotionText {
@@ -90,6 +93,37 @@ export async function getSentences(): Promise<SentenceRecord[]> {
       translation: readText(page, '英文翻译'),
       author: readText(page, '作者'),
       source: readText(page, '出处'),
+      authorEn: readText(page, '英文作者') || readText(page, '作者（英文）'),
+      sourceEn: readText(page, '英文出处') || readText(page, '出处（英文）'),
     }))
     .filter((sentence) => sentence.text)
+}
+
+export async function getLocalizedSentences(locale: Locale): Promise<SentenceRecord[]> {
+  const sentences = await getSentences()
+
+  if (locale === 'zh') {
+    return sentences.map((sentence) => ({
+      ...sentence,
+      translation: '',
+      authorEn: '',
+      sourceEn: '',
+    }))
+  }
+
+  return sentences.flatMap((sentence) => {
+    const hasRequiredCredit = (!sentence.author || sentence.authorEn)
+      && (!sentence.source || sentence.sourceEn)
+    if (!sentence.translation || !hasRequiredCredit) return []
+
+    return [{
+      ...sentence,
+      text: sentence.translation,
+      translation: '',
+      author: sentence.authorEn,
+      source: sentence.sourceEn,
+      authorEn: '',
+      sourceEn: '',
+    }]
+  })
 }

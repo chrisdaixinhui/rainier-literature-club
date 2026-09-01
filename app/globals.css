@@ -68,6 +68,86 @@ main {
   transform: translateY(5px);
 }
 
+.site-nav-logo {
+  min-width: 0;
+  flex: 0 1 auto;
+}
+
+.site-nav-actions {
+  align-items: center;
+  flex: 0 0 auto;
+}
+
+.site-nav .site-nav-actions--desktop {
+  display: flex;
+  gap: clamp(14px, 1.5vw, 24px);
+}
+
+.site-nav .site-nav-actions--mobile {
+  display: none;
+  gap: 2px;
+}
+
+.site-language-switcher {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-label);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.site-language-option {
+  display: inline-flex;
+  min-width: 30px;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  color: #8FA499;
+  text-decoration: none;
+  transition: color 180ms ease;
+}
+
+.site-language-option[href]:hover {
+  color: #F2EBDF;
+}
+
+.site-language-option[href]:focus-visible {
+  color: #F2EBDF;
+  outline: 2px solid #8FA499;
+  outline-offset: -6px;
+  border-radius: 2px;
+}
+
+.site-language-option.is-current {
+  color: #F2EBDF;
+}
+
+.site-language-separator {
+  color: rgba(242, 235, 223, 0.38);
+  transform: translateY(-0.03em);
+}
+
+.site-nav-hamburger {
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  background: transparent;
+}
+
+.site-nav-hamburger:focus-visible {
+  outline: 2px solid #8FA499;
+  outline-offset: -4px;
+}
+
 .site-nav-subscribe {
   gap: 6px;
   padding: 8px 18px;
@@ -111,6 +191,34 @@ main {
 
   .site-nav--home .site-nav-subscribe-en {
     font-size: 0.833em;
+  }
+
+  .site-nav--home .site-language-switcher {
+    font-size: max(11px, 0.625em);
+  }
+}
+
+@media (max-width: 420px) {
+  .site-nav {
+    padding-inline: 14px;
+  }
+
+  .site-nav-logo-mark {
+    width: 112px;
+  }
+
+  .site-language-option {
+    min-width: 28px;
+  }
+}
+
+@media (max-width: 767px) {
+  .site-nav .site-nav-actions--desktop {
+    display: none;
+  }
+
+  .site-nav .site-nav-actions--mobile {
+    display: flex;
   }
 }
 
@@ -336,6 +444,28 @@ button, a[href], [role="button"] {
   display: grid;
   gap: clamp(8px, 1vw, 14px);
   width: 100%;
+}
+
+.event-gallery-empty {
+  width: min(900px, calc(100% - 48px));
+  margin: 0 auto;
+  padding: 48px 24px;
+  border: 1px dashed #D8D2C8;
+  color: #68736E;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  line-height: 1.7;
+  text-align: center;
+}
+
+.event-gallery-detail-language {
+  display: block;
+  width: fit-content;
+  color: #65756E;
+  font-family: var(--font-label);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
 }
 
 .event-gallery-row {
@@ -1065,6 +1195,15 @@ button, a[href], [role="button"] {
   color: rgba(61, 43, 30, 0.82);
 }
 
+.subscribe-postcard-language-note {
+  max-width: 34ch;
+  margin-top: 14px;
+  font-family: var(--font-sans);
+  font-size: 10px;
+  line-height: 1.55;
+  color: rgba(61, 43, 30, 0.62);
+}
+
 .subscribe-postcard-from {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
@@ -1430,6 +1569,10 @@ button, a[href], [role="button"] {
     font-size: min(5em, 10.4cqw) !important;
   }
 
+  .locale-en .home-hero-title {
+    font-size: clamp(2rem, 6.8cqw, 3.15em) !important;
+  }
+
   .home-hero-intro {
     margin-top: auto;
   }
@@ -1491,6 +1634,17 @@ button, a[href], [role="button"] {
 .home-hero-title > span:last-child {
   margin-top: 0.13em;
   margin-left: 0;
+}
+
+.locale-en .home-hero-title {
+  font-size: clamp(2rem, 3.1vw, 3.15em);
+  line-height: 0.96;
+  letter-spacing: -0.04em;
+}
+
+.locale-en .home-hero-title > span {
+  white-space: normal;
+  text-wrap: balance;
 }
 
 .home-hero-rule {
@@ -2438,9 +2592,24 @@ button, a[href], [role="button"] {
     letter-spacing: -0.06em;
   }
 
+  .locale-zh .home-hero-title {
+    font-size: clamp(2.25rem, 9.8vw, 3.875rem);
+  }
+
   .home-hero-title > span:last-child {
     margin-top: 8px;
     margin-left: 0;
+  }
+
+  .locale-en .home-hero-title {
+    max-width: 16ch;
+    font-size: clamp(1.75rem, 8.2vw, 2.55rem);
+    line-height: 1;
+    letter-spacing: -0.035em;
+  }
+
+  .locale-en .home-hero-title > span {
+    white-space: normal;
   }
 
   .home-hero-intro {

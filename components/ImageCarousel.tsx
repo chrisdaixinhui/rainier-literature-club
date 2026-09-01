@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import type { Dictionary } from '@/lib/i18n-types'
 
 const IMAGES = [
   'https://res.cloudinary.com/dpprzfwjf/image/upload/v1781833719/%E5%85%B3%E4%BA%8E%E6%88%91%E4%BB%AC/DSC_0610_houpbq.jpg',
@@ -11,7 +12,7 @@ const IMAGES = [
 
 const INTERVAL = 4000
 
-export default function ImageCarousel() {
+export default function ImageCarousel({ copy }: { copy: Dictionary['carousel'] }) {
   const [current, setCurrent] = useState(0)
   const [paused, setPaused] = useState(false)
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
@@ -54,7 +55,7 @@ export default function ImageCarousel() {
         <img
           key={src}
           src={src}
-          alt={`社群合影 ${i + 1}`}
+          alt={`${copy.imageAlt} ${i + 1}`}
           style={{
             position: 'absolute',
             inset: 0,
@@ -68,8 +69,8 @@ export default function ImageCarousel() {
       ))}
 
       {[
-        { direction: 'previous', label: '上一张照片', side: 'left', icon: '‹' },
-        { direction: 'next', label: '下一张照片', side: 'right', icon: '›' },
+        { direction: 'previous', label: copy.previous, side: 'left', icon: '‹' },
+        { direction: 'next', label: copy.next, side: 'right', icon: '›' },
       ].map(({ direction, label, side, icon }) => (
         <button
           key={direction}
@@ -125,7 +126,7 @@ export default function ImageCarousel() {
           <button
             key={i}
             onClick={() => setCurrent(i)}
-            aria-label={`Go to image ${i + 1}`}
+            aria-label={`${copy.goTo} ${i + 1}`}
             style={{
               width: i === current ? '20px' : '8px',
               height: '8px',

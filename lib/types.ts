@@ -1,7 +1,9 @@
 export type ActivityStatus = 'upcoming' | 'past' | 'coming_soon'
+export type ActivityLanguage = 'zh' | 'bilingual' | 'en'
 
 export interface ActivityRecord {
   id: string
+  categoryId?: string | null
   title: string
   titleEn?: string | null
   subType?: string | null
@@ -10,6 +12,8 @@ export interface ActivityRecord {
   endAt?: string | null
   location?: string | null
   locationDetail?: string | null
+  locationEn?: string | null
+  locationDetailEn?: string | null
   description?: string | null
   descriptionEn?: string | null
   poster?: string | null
@@ -17,6 +21,8 @@ export interface ActivityRecord {
   reviewUrl?: string | null
   comingSoon?: boolean
   featured?: boolean
+  publishedEn?: boolean
+  activityLanguage?: ActivityLanguage | null
   status: ActivityStatus
 }
 
@@ -43,11 +49,15 @@ export interface PartnerRecord {
   endAt?: string | null
   location?: string | null
   locationDetail?: string | null
+  locationEn?: string | null
+  locationDetailEn?: string | null
   description?: string | null
   descriptionEn?: string | null
   poster?: string | null
   url?: string | null
   comingSoon?: boolean
+  publishedEn?: boolean
+  activityLanguage?: ActivityLanguage | null
   status?: ActivityStatus
 }
 
@@ -55,15 +65,20 @@ export interface TicketRecord {
   id: string
   activityId?: string | null
   title: string
+  titleEn?: string | null
   date?: string | null
   time?: string | null
   location?: string | null
+  locationEn?: string | null
   generalPrice?: number | null
   generalUrl?: string | null
   supporterPrice?: number | null
   supporterUrl?: string | null
   supporterPerks?: string | null
+  supporterPerksEn?: string | null
   comingSoon?: boolean
+  publishedEn?: boolean
+  activityLanguage?: ActivityLanguage | null
 }
 
 export interface ActivitiesPayload {
