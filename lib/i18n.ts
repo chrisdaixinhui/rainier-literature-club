@@ -338,7 +338,7 @@ const en: Dictionary = {
     gallery: {
       eyebrow: "WHAT WE'VE DONE",
       index: '04 / PAST GATHERINGS ARCHIVE',
-      title: 'Binding our gatherings into an archive',
+      title: 'Gathering Archive',
       aria: 'Rainier Literature Society past event posters',
       viewDetails: 'View event details',
       closeDetails: 'Close event details',

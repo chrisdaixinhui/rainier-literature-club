@@ -31,7 +31,10 @@ export default async function SentenceOfDay({
       </div>
 
       <div className={styles.quoteBody}>
-        <p className={styles.quoteChinese}>{sentence.text}</p>
+        <p className={styles.quoteChinese} lang="zh">{sentence.text}</p>
+        {sentence.translation && (
+          <p className={styles.quoteEnglish} lang="en">{sentence.translation}</p>
+        )}
       </div>
 
       <div className={styles.quoteCredit}>

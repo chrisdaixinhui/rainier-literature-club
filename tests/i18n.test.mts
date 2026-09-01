@@ -11,6 +11,7 @@ import {
   localizeActivitiesPayload,
   validateEnglishActivity,
 } from '../lib/activityPublication.ts'
+import { localizeSentences } from '../lib/sentenceLocalization.ts'
 import type { ActivitiesPayload, ActivityRecord } from '../lib/types.ts'
 
 test('Accept-Language honors quality weights and supported-language order', () => {
@@ -162,4 +163,29 @@ test('one publication filter controls activities, categories, partners, and tick
   } finally {
     console.warn = warn
   }
+})
+
+test('English daily sentence keeps the Chinese original and uses English for the rest', () => {
+  const sentence = {
+    text: '人生如逆旅，我亦是行人。',
+    translation: 'Life is a journey through the world; I too am merely a traveler.',
+    author: '苏轼',
+    source: '《临江仙·送钱穆父》',
+    authorEn: 'Su Shi',
+    sourceEn: 'To the Tune “Immortal by the River”: Farewell to Qian Mufu',
+  }
+
+  assert.deepEqual(localizeSentences([sentence], 'en'), [{
+    ...sentence,
+    author: 'Su Shi',
+    source: 'To the Tune “Immortal by the River”: Farewell to Qian Mufu',
+    authorEn: '',
+    sourceEn: '',
+  }])
+  assert.deepEqual(localizeSentences([sentence], 'zh'), [{
+    ...sentence,
+    translation: '',
+    authorEn: '',
+    sourceEn: '',
+  }])
 })

@@ -1,5 +1,6 @@
 import { cacheLife, cacheTag } from 'next/cache'
 import type { Locale } from './i18n-routing'
+import { localizeSentences } from './sentenceLocalization'
 
 const NOTION_VERSION = '2022-06-28'
 export interface SentenceRecord {
@@ -100,30 +101,5 @@ export async function getSentences(): Promise<SentenceRecord[]> {
 }
 
 export async function getLocalizedSentences(locale: Locale): Promise<SentenceRecord[]> {
-  const sentences = await getSentences()
-
-  if (locale === 'zh') {
-    return sentences.map((sentence) => ({
-      ...sentence,
-      translation: '',
-      authorEn: '',
-      sourceEn: '',
-    }))
-  }
-
-  return sentences.flatMap((sentence) => {
-    const hasRequiredCredit = (!sentence.author || sentence.authorEn)
-      && (!sentence.source || sentence.sourceEn)
-    if (!sentence.translation || !hasRequiredCredit) return []
-
-    return [{
-      ...sentence,
-      text: sentence.translation,
-      translation: '',
-      author: sentence.authorEn,
-      source: sentence.sourceEn,
-      authorEn: '',
-      sourceEn: '',
-    }]
-  })
+  return localizeSentences(await getSentences(), locale)
 }
