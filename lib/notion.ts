@@ -1,5 +1,6 @@
 import type {
   ActivitiesPayload,
+  ActivityLanguage,
   ActivityRecord,
   ActivityStatus,
   CategoryRecord,
@@ -341,6 +342,22 @@ function checkboxValue(page: NotionPage, names: string[]): boolean {
   return Boolean(getProp(page, names)?.checkbox)
 }
 
+function activityLanguageValue(page: NotionPage): ActivityLanguage | null {
+  const value = selectValue(page, ['活动语言', 'Activity Language']).trim().toLowerCase()
+  const aliases: Record<string, ActivityLanguage> = {
+    中文: 'zh',
+    chinese: 'zh',
+    zh: 'zh',
+    中英双语: 'bilingual',
+    双语: 'bilingual',
+    bilingual: 'bilingual',
+    英文: 'en',
+    english: 'en',
+    en: 'en',
+  }
+  return aliases[value] ?? null
+}
+
 function dateValue(page: NotionPage, names: string[]): {
   date: string | null
   time: string | null
@@ -492,9 +509,13 @@ export function normalizeNotionActivities(rows: NotionPage[], now = new Date()):
     const generalPrice = numberValue(row, ['普通票价', 'General Price', '普通票'])
     const supporterPrice = numberValue(row, ['支持者票价', 'Supporter Price', '支持者票'])
     const supporterPerks = textValue(row, ['支持者票含周边说明', 'Supporter Perks', '支持者票权益'])
+    const supporterPerksEn = textValue(row, ['英文票务权益', '支持者票权益（英文）', 'Supporter Perks (English)'])
+    const publishedEn = checkboxValue(row, ['英文版发布', 'Publish English', 'English Published'])
+    const activityLanguage = activityLanguageValue(row)
 
     const activity: ActivityRecord = {
       id: row.id,
+      categoryId: categoryMeta.id,
       title,
       titleEn: textValue(row, ['活动名称（英文）', '英文名称', 'English Name']) || null,
       subType: selectValue(row, ['活动类型', 'Sub Type', '子分类']) || null,
@@ -503,6 +524,8 @@ export function normalizeNotionActivities(rows: NotionPage[], now = new Date()):
       endAt,
       location: textValue(row, ['地点', 'Location']) || null,
       locationDetail: textValue(row, ['地点详情', 'Location Detail']) || null,
+      locationEn: textValue(row, ['英文地点', '地点（英文）', 'Location (English)']) || null,
+      locationDetailEn: textValue(row, ['英文地点详情', '地点详情（英文）', 'Location Detail (English)']) || null,
       description: description || null,
       descriptionEn: textValue(row, ['英文简介', 'English Description']) || null,
       poster: poster || null,
@@ -510,6 +533,8 @@ export function normalizeNotionActivities(rows: NotionPage[], now = new Date()):
       reviewUrl: reviewUrl || null,
       comingSoon: status === 'coming_soon',
       featured: checkboxValue(row, ['是否置顶', 'Featured', '置顶']),
+      publishedEn,
+      activityLanguage,
       status,
     }
 
@@ -529,11 +554,15 @@ export function normalizeNotionActivities(rows: NotionPage[], now = new Date()):
         endAt,
         location: activity.location,
         locationDetail: activity.locationDetail,
+        locationEn: activity.locationEn,
+        locationDetailEn: activity.locationDetailEn,
         description: description || null,
         descriptionEn: activity.descriptionEn,
         poster: activity.poster,
         url: urlValue(row, ['友社链接', 'Partner URL']) || registerUrl || '#',
         comingSoon: activity.comingSoon,
+        publishedEn,
+        activityLanguage,
         status,
       })
       continue
@@ -560,15 +589,20 @@ export function normalizeNotionActivities(rows: NotionPage[], now = new Date()):
         id: `t-${row.id}`,
         activityId: row.id,
         title,
+        titleEn: activity.titleEn,
         date,
         time,
         location: activity.location,
+        locationEn: activity.locationEn,
         generalPrice,
         generalUrl: registerUrl || '#',
         supporterPrice,
         supporterUrl: registerUrl || '#',
         supporterPerks: supporterPerks || null,
+        supporterPerksEn: supporterPerksEn || null,
         comingSoon: status === 'coming_soon',
+        publishedEn,
+        activityLanguage,
       })
     }
   }

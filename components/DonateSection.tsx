@@ -1,3 +1,5 @@
+import Link from 'next/link'
+
 export default function DonateSection({ compact = false }: { compact?: boolean }) {
   if (compact) {
     return (
@@ -6,13 +8,13 @@ export default function DonateSection({ compact = false }: { compact?: boolean }
           <p className="text-sm text-ink/60 mb-3" style={{ fontFamily: 'var(--font-sans)' }}>
             支持我们继续做这件事 · Support what we do
           </p>
-          <a
+          <Link
             href="/support#donate"
             className="inline-block text-sm font-medium text-moss hover:text-moss-dark transition-colors border-b border-moss/40"
             style={{ fontFamily: 'var(--font-sans)' }}
           >
             捐赠 Donate →
-          </a>
+          </Link>
         </div>
       </section>
     )

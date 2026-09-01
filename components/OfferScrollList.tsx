@@ -1,13 +1,7 @@
 'use client'
 
 import { useEffect, useRef } from 'react'
-
-interface OfferItem {
-  num: string
-  title: string
-  titleEn: string
-  desc: string
-}
+import type { Dictionary } from '@/lib/i18n-types'
 
 function clamp(value: number): number {
   return Math.min(1, Math.max(0, value))
@@ -21,7 +15,13 @@ function weightsForProgress(progress: number): [number, number, number] {
   return [0, 2 - position, position - 1]
 }
 
-export default function OfferScrollList({ offers }: { offers: OfferItem[] }) {
+export default function OfferScrollList({
+  copy,
+  activitiesHref,
+}: {
+  copy: Dictionary['home']['offers']
+  activitiesHref: string
+}) {
   const sceneRef = useRef<HTMLDivElement>(null)
   const listRef = useRef<HTMLDivElement>(null)
   const rowRefs = useRef<Array<HTMLElement | null>>([])
@@ -144,14 +144,14 @@ export default function OfferScrollList({ offers }: { offers: OfferItem[] }) {
       <div className="home-offer-sticky">
         <div className="home-container home-offer-frame">
           <div className="home-section-meta">
-            <p>What We Offer · 我们提供什么</p>
-            <span>03 / READING AS PRACTICE</span>
+            <p>{copy.eyebrow}</p>
+            <span>{copy.index}</span>
           </div>
 
-          <h2 id="home-offers-title" className="home-offers-title">我们提供什么</h2>
+          <h2 id="home-offers-title" className="home-offers-title">{copy.title}</h2>
 
           <div ref={listRef} className="home-offer-list">
-            {offers.map((offer, index) => (
+            {copy.items.map((offer, index) => (
               <article
                 key={offer.num}
                 ref={(row) => { rowRefs.current[index] = row }}
@@ -161,17 +161,17 @@ export default function OfferScrollList({ offers }: { offers: OfferItem[] }) {
                 <span className="home-offer-num">{offer.num}</span>
                 <div className="home-offer-name">
                   <h3>{offer.title}</h3>
-                  <p>{offer.titleEn}</p>
+                  <p>{offer.accent}</p>
                 </div>
                 <div className="home-offer-desc-clip">
-                  <p className="home-offer-desc">{offer.desc}</p>
+                  <p className="home-offer-desc">{offer.description}</p>
                 </div>
               </article>
             ))}
           </div>
 
-          <a href="/activities" className="home-text-link">
-            <span>查看全部活动</span>
+          <a href={activitiesHref} className="home-text-link">
+            <span>{copy.viewAll}</span>
             <span aria-hidden="true">↗</span>
           </a>
         </div>

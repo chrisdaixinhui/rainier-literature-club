@@ -1,7 +1,8 @@
 'use client'
 
 import { useEffect, useRef, useState, type CSSProperties, type KeyboardEvent } from 'react'
-import type { ActivityRecord, PartnerRecord } from '@/lib/types'
+import type { ActivityLanguage, ActivityRecord, PartnerRecord } from '@/lib/types'
+import type { Dictionary } from '@/lib/i18n-types'
 
 interface ShowcaseCard {
   id: string
@@ -17,19 +18,24 @@ interface ShowcaseCard {
   actionUrl?: string | null
   actionLabel: string
   disabledActionLabel: string
+  activityLanguage?: ActivityLanguage | null
 }
 
 function hasUsableUrl(url?: string | null): url is string {
   return Boolean(url && url.trim() && url.trim() !== '#')
 }
 
-function cardMeta(card: ShowcaseCard): string {
+function cardMeta(card: ShowcaseCard, copy: Dictionary['home']['upcoming']): string {
   const schedule = [card.date, card.time].filter(Boolean).join(' ')
   const place = [card.location, card.locationDetail].filter(Boolean).join(' · ')
-  return [schedule || '时间待公布', place || '地点待公布'].join(' · ')
+  return [schedule || copy.timeTba, place || copy.placeTba].join(' · ')
 }
 
-function showcaseCards(activities: ActivityRecord[], partners: PartnerRecord[]): ShowcaseCard[] {
+function showcaseCards(
+  activities: ActivityRecord[],
+  partners: PartnerRecord[],
+  copy: Dictionary['home']['upcoming'],
+): ShowcaseCard[] {
   return [
     ...activities.map((activity) => ({
       id: `rainier-${activity.id}`,
@@ -42,8 +48,9 @@ function showcaseCards(activities: ActivityRecord[], partners: PartnerRecord[]):
       description: activity.description,
       poster: activity.poster,
       actionUrl: activity.registerUrl,
-      actionLabel: '报名活动 · Register',
-      disabledActionLabel: '报名即将开放',
+      actionLabel: copy.rainierAction,
+      disabledActionLabel: copy.rainierDisabled,
+      activityLanguage: activity.activityLanguage,
     })),
     ...partners.map((partner) => ({
       id: `partner-${partner.id}`,
@@ -57,8 +64,9 @@ function showcaseCards(activities: ActivityRecord[], partners: PartnerRecord[]):
       description: partner.description,
       poster: partner.poster,
       actionUrl: partner.url,
-      actionLabel: '了解详情 · Learn More',
-      disabledActionLabel: '详情即将开放',
+      actionLabel: copy.partnerAction,
+      disabledActionLabel: copy.partnerDisabled,
+      activityLanguage: partner.activityLanguage,
     })),
   ]
 }
@@ -176,9 +184,13 @@ function cardMotion(progress: number, index: number, total: number) {
 export default function UpcomingShowcase({
   activities,
   partners,
+  copy,
+  activityLanguageCopy,
 }: {
   activities: ActivityRecord[]
   partners: PartnerRecord[]
+  copy: Dictionary['home']['upcoming']
+  activityLanguageCopy: Dictionary['activityLanguage']
 }) {
   const sectionRef = useRef<HTMLElement>(null)
   const frameRef = useRef<number | null>(null)
@@ -189,7 +201,7 @@ export default function UpcomingShowcase({
   const [viewportHeight, setViewportHeight] = useState(0)
   const [posterRatios, setPosterRatios] = useState<Record<string, number>>({})
   const [flowProgress, setFlowProgress] = useState(0)
-  const cards = showcaseCards(activities, partners)
+  const cards = showcaseCards(activities, partners, copy)
   const cardHeight = resolvedCardHeight(viewportWidth, viewportHeight)
   const cardScale = resolvedCardScale(viewportWidth, viewportHeight, cardHeight)
   const isFlowLayout = cards.some((card) => (
@@ -289,17 +301,23 @@ export default function UpcomingShowcase({
       data-od-id="home-upcoming"
     >
       <div className="home-upcoming-sticky">
+        <div className="home-container home-upcoming-heading-group">
+          <div className="home-section-meta">
+            <p>{copy.eyebrow}</p>
+            <span>{copy.index}</span>
+          </div>
+
+          <header className="home-upcoming-heading">
+            <h2 id="home-upcoming-title">{copy.title}</h2>
+          </header>
+        </div>
+
         <div className="home-upcoming-grid" aria-hidden="true">
           <span className="home-upcoming-grid-layer home-upcoming-grid-horizontal home-upcoming-grid-from-left" />
           <span className="home-upcoming-grid-layer home-upcoming-grid-horizontal home-upcoming-grid-from-right" />
           <span className="home-upcoming-grid-layer home-upcoming-grid-vertical home-upcoming-grid-from-top" />
           <span className="home-upcoming-grid-layer home-upcoming-grid-vertical home-upcoming-grid-from-bottom" />
         </div>
-
-        <header className="home-upcoming-heading">
-          <p>What’s coming…</p>
-          <h2 id="home-upcoming-title">敬请期待</h2>
-        </header>
 
         {isFlowLayout && viewportWidth > 700 && renderProgress()}
 
@@ -332,7 +350,7 @@ export default function UpcomingShowcase({
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
                       src={card.poster}
-                      alt={`${card.title} 活动海报`}
+                      alt={`${card.title} ${copy.posterAlt}`}
                       onLoad={({ currentTarget }) => {
                         const ratio = currentTarget.naturalWidth / currentTarget.naturalHeight
                         if (!Number.isFinite(ratio) || ratio <= 0) return
@@ -357,17 +375,19 @@ export default function UpcomingShowcase({
                       {String(index + 1).padStart(2, '0')} / {String(cards.length).padStart(2, '0')}
                     </p>
                     {card.sourceName && (
-                      <p className="home-upcoming-source">友社活动 · {card.sourceName}</p>
+                      <p className="home-upcoming-source">{copy.partnerSource} · {card.sourceName}</p>
+                    )}
+                    {card.activityLanguage && (
+                      <p className="home-upcoming-source">{activityLanguageCopy[card.activityLanguage]}</p>
                     )}
                     <h3>{card.title}</h3>
-                    {card.titleEn && <p className="home-upcoming-title-en">{card.titleEn}</p>}
-                    <p className="home-upcoming-meta">{cardMeta(card)}</p>
+                    <p className="home-upcoming-meta">{cardMeta(card, copy)}</p>
                   </header>
 
                   <div
                     className="home-upcoming-body"
                     role="region"
-                    aria-label={`${card.title} 活动正文`}
+                    aria-label={`${card.title} ${copy.bodyAria}`}
                     tabIndex={card.description && canInteract ? 0 : -1}
                     onKeyDown={handleBodyKeyDown}
                   >

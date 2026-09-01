@@ -1,13 +1,7 @@
 'use client'
 import { useState } from 'react'
 import type { TicketRecord } from '@/lib/types'
-
-const MERCH = [
-  { id: 1, num: '01', name: '诗意帆布袋', nameEn: 'Linen Tote Bag', desc: '手提，装书，也装诗意', imgLabel: '帆布袋 · 800×800' },
-  { id: 2, num: '02', name: '雾雨书签', nameEn: 'Rain Bookmark', desc: '一枚，一行，一处停留', imgLabel: '书签 · 800×800' },
-  { id: 3, num: '03', name: '理想主义者·徽章', nameEn: 'Club Pin', desc: '戴上，就是一种宣言', imgLabel: '徽章 · 800×800' },
-  { id: 4, num: '04', name: '社群明信片套装', nameEn: 'Postcard Set', desc: '寄给在英语世界里的你', imgLabel: '明信片 · 800×800' },
-]
+import type { Dictionary } from '@/lib/i18n-types'
 
 function ImgPlaceholder({ label }: { label: string }) {
   return (
@@ -22,27 +16,27 @@ function ImgPlaceholder({ label }: { label: string }) {
   )
 }
 
-function MerchSection() {
+function MerchSection({ copy }: { copy: Dictionary['support'] }) {
   const [hoveredId, setHoveredId] = useState<number | null>(null)
 
   return (
     <section className="px-4 md:px-6" style={{ paddingTop: '80px', paddingBottom: '80px', maxWidth: '860px', margin: '0 auto' }}>
-      <p className="label-sm" style={{ textAlign: 'center', marginBottom: '16px' }}>Merchandise · 周边商品</p>
+      <p className="label-sm" style={{ textAlign: 'center', marginBottom: '16px' }}>{copy.merchEyebrow}</p>
       <h2 style={{
         fontFamily: 'var(--font-serif)', fontSize: 'clamp(24px, 4vw, 38px)',
         fontWeight: 700, textAlign: 'center', color: '#1C2220', marginBottom: '12px',
       }}>
-        周边商品
+        {copy.merchTitle}
       </h2>
       <p style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: '14px', color: '#8FA499', textAlign: 'center', marginBottom: '64px' }}>
-        即将上线 · Coming Soon
+        {copy.merchComingSoon}
       </p>
 
       <div className="grid grid-cols-1 md:grid-cols-2 md:gap-x-16 items-start">
 
         {/* Left: text list */}
         <div className="merch-list" style={{ paddingTop: '16px' }}>
-          {MERCH.map(m => (
+          {copy.merch.map(m => (
             <div
               key={m.id}
               className="merch-item"
@@ -77,14 +71,14 @@ function MerchSection() {
                     color: hoveredId === m.id ? '#8FA499' : '#C4C0B8',
                     transition: 'color 0.25s',
                   }}>
-                    {m.nameEn}
+                    {m.accent}
                   </p>
                   <p style={{
                     fontFamily: 'var(--font-sans)', fontSize: '13px',
                     color: hoveredId === m.id ? 'rgba(46,70,61,0.65)' : 'rgba(104,115,110,0.5)',
                     marginTop: '6px', transition: 'color 0.25s',
                   }}>
-                    {m.desc}
+                    {m.description}
                   </p>
                 </div>
               </div>
@@ -92,13 +86,13 @@ function MerchSection() {
           ))}
 
           <p style={{ fontFamily: 'var(--font-sans)', fontSize: '13px', color: '#8FA499', marginTop: '28px', lineHeight: 1.7 }}>
-            订阅通讯，第一时间获知上线消息。
+            {copy.merchSubscribe}
           </p>
         </div>
 
         {/* Right: floating image (desktop only — hover interaction) */}
         <div className="hidden md:block" style={{ position: 'sticky', top: '100px', aspectRatio: '1/1' }}>
-          {MERCH.map(m => (
+          {copy.merch.map(m => (
             <div
               key={m.id}
               style={{
@@ -109,7 +103,7 @@ function MerchSection() {
                 pointerEvents: 'none',
               }}
             >
-              <ImgPlaceholder label={m.imgLabel} />
+              <ImgPlaceholder label={m.imageLabel} />
             </div>
           ))}
           {/* Default empty state */}
@@ -121,7 +115,7 @@ function MerchSection() {
             display: 'flex', alignItems: 'center', justifyContent: 'center',
           }}>
             <p style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: '13px', color: '#C4C0B8' }}>
-              hover to preview
+              {copy.merchPreview}
             </p>
           </div>
         </div>
@@ -130,20 +124,61 @@ function MerchSection() {
   )
 }
 
-function TicketsSection({ tickets }: { tickets: TicketRecord[] }) {
+function hasUsableUrl(url?: string | null): url is string {
+  return Boolean(url && url.trim() && url.trim() !== '#')
+}
+
+function TicketAction({
+  href,
+  className,
+  copy,
+}: {
+  href?: string | null
+  className: string
+  copy: Dictionary['support']
+}) {
+  const style = {
+    ...(className === 'btn-outline' ? { color: '#1C2220' } : {}),
+    fontSize: '12px',
+    padding: '9px 20px',
+  }
+  if (!hasUsableUrl(href)) {
+    return (
+      <span className={className} aria-disabled="true" style={{ ...style, cursor: 'not-allowed', opacity: 0.5 }}>
+        {copy.registerDisabled}
+      </span>
+    )
+  }
+
+  return (
+    <a href={href} className={className} style={style} target="_blank" rel="noreferrer">
+      {copy.register}
+    </a>
+  )
+}
+
+function TicketsSection({
+  tickets,
+  copy,
+  activityLanguageCopy,
+}: {
+  tickets: TicketRecord[]
+  copy: Dictionary['support']
+  activityLanguageCopy: Dictionary['activityLanguage']
+}) {
   return (
     <section className="px-4 md:px-6" style={{ paddingTop: '80px', paddingBottom: '80px', maxWidth: '860px', margin: '0 auto', borderTop: '1px solid #E6E2DA' }}>
-      <p className="label-sm" style={{ textAlign: 'center', marginBottom: '16px' }}>Tickets · 活动票务</p>
+      <p className="label-sm" style={{ textAlign: 'center', marginBottom: '16px' }}>{copy.ticketsEyebrow}</p>
       <h2 style={{
         fontFamily: 'var(--font-serif)', fontSize: 'clamp(24px, 4vw, 38px)',
         fontWeight: 700, textAlign: 'center', color: '#1C2220', marginBottom: '56px',
       }}>
-        活动票务
+        {copy.ticketsTitle}
       </h2>
 
       {tickets.length === 0 ? (
         <p style={{ textAlign: 'center', fontFamily: 'var(--font-sans)', color: '#8FA499', padding: '48px 0' }}>
-          暂无开放票务，敬请期待。
+          {copy.ticketsEmpty}
         </p>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '48px' }}>
@@ -163,7 +198,16 @@ function TicketsSection({ tickets }: { tickets: TicketRecord[] }) {
                     fontFamily: 'var(--font-label)', fontSize: '10px', letterSpacing: '0.14em',
                     color: '#2E463D', background: '#2E463D18', padding: '3px 10px',
                   }}>
-                    票务即将开放 · COMING SOON
+                    {copy.ticketsComingSoon}
+                  </span>
+                )}
+                {ticket.activityLanguage && (
+                  <span style={{
+                    display: 'inline-block', marginTop: '10px', marginLeft: '8px',
+                    fontFamily: 'var(--font-label)', fontSize: '10px', letterSpacing: '0.1em',
+                    color: '#65756E', background: '#65756E12', padding: '3px 10px',
+                  }}>
+                    {activityLanguageCopy[ticket.activityLanguage]}
                   </span>
                 )}
               </div>
@@ -172,32 +216,28 @@ function TicketsSection({ tickets }: { tickets: TicketRecord[] }) {
               <div className="grid grid-cols-1 md:grid-cols-2">
                 {/* General */}
                 <div className="px-8 py-7 border-b border-[#E6E2DA] md:border-b-0 md:border-r md:border-[#E6E2DA]">
-                  <p style={{ fontFamily: 'var(--font-serif)', fontSize: '16px', fontWeight: 700, color: '#1C2220', marginBottom: '4px' }}>普通票</p>
-                  <p style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: '12px', color: '#8FA499', marginBottom: '20px' }}>General Admission</p>
+                  <p style={{ fontFamily: 'var(--font-serif)', fontSize: '16px', fontWeight: 700, color: '#1C2220', marginBottom: '4px' }}>{copy.general}</p>
+                  <p style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: '12px', color: '#8FA499', marginBottom: '20px' }}>{copy.generalAccent}</p>
                   <p style={{ fontFamily: 'var(--font-display)', fontSize: '28px', fontWeight: 700, color: '#1C2220', marginBottom: '20px' }}>
-                    {ticket.generalPrice ? `$${ticket.generalPrice}` : '—'}
+                    {ticket.generalPrice != null ? `$${ticket.generalPrice}` : '—'}
                   </p>
-                  <a href={ticket.generalUrl ?? '#'} className="btn-outline" style={{ color: '#1C2220', fontSize: '12px', padding: '9px 20px' }}>
-                    立即报名
-                  </a>
+                  <TicketAction href={ticket.generalUrl} className="btn-outline" copy={copy} />
                 </div>
 
                 {/* Supporter */}
                 <div className="px-8 py-7" style={{ background: '#2E463D08' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-                    <p style={{ fontFamily: 'var(--font-serif)', fontSize: '16px', fontWeight: 700, color: '#1C2220' }}>支持者票</p>
-                    <span style={{ fontFamily: 'var(--font-label)', fontSize: '9px', color: '#2E463D', background: '#2E463D18', padding: '2px 7px', letterSpacing: '0.1em' }}>推荐</span>
+                    <p style={{ fontFamily: 'var(--font-serif)', fontSize: '16px', fontWeight: 700, color: '#1C2220' }}>{copy.supporter}</p>
+                    <span style={{ fontFamily: 'var(--font-label)', fontSize: '9px', color: '#2E463D', background: '#2E463D18', padding: '2px 7px', letterSpacing: '0.1em' }}>{copy.recommended}</span>
                   </div>
-                  <p style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: '12px', color: '#8FA499', marginBottom: '8px' }}>Supporter Ticket</p>
+                  <p style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: '12px', color: '#8FA499', marginBottom: '8px' }}>{copy.supporterAccent}</p>
                   <p style={{ fontFamily: 'var(--font-sans)', fontSize: '12px', color: '#68736E', lineHeight: 1.6, marginBottom: '16px' }}>
                     {ticket.supporterPerks}
                   </p>
                   <p style={{ fontFamily: 'var(--font-display)', fontSize: '28px', fontWeight: 700, color: '#2E463D', marginBottom: '20px' }}>
-                    {ticket.supporterPrice ? `$${ticket.supporterPrice}` : '—'}
+                    {ticket.supporterPrice != null ? `$${ticket.supporterPrice}` : '—'}
                   </p>
-                  <a href={ticket.supporterUrl ?? '#'} className="btn-filled" style={{ fontSize: '12px', padding: '9px 20px' }}>
-                    立即报名
-                  </a>
+                  <TicketAction href={ticket.supporterUrl} className="btn-filled" copy={copy} />
                 </div>
               </div>
             </div>
@@ -208,26 +248,34 @@ function TicketsSection({ tickets }: { tickets: TicketRecord[] }) {
   )
 }
 
-export default function SupportClient({ tickets }: { tickets: TicketRecord[] }) {
+export default function SupportClient({
+  tickets,
+  copy,
+  activityLanguageCopy,
+}: {
+  tickets: TicketRecord[]
+  copy: Dictionary['support']
+  activityLanguageCopy: Dictionary['activityLanguage']
+}) {
   return (
     <div style={{ minHeight: '100vh', background: '#FAF8F5' }}>
 
       {/* Header */}
       <div className="px-4 md:px-6" style={{ paddingTop: '120px', paddingBottom: '48px', textAlign: 'center', borderBottom: '1px solid #E6E2DA', maxWidth: '680px', margin: '0 auto' }}>
-        <p className="label-sm" style={{ marginBottom: '16px' }}>Support Us · 支持我们</p>
+        <p className="label-sm" style={{ marginBottom: '16px' }}>{copy.eyebrow}</p>
         <h1 style={{
           fontFamily: 'var(--font-serif)', fontSize: 'clamp(28px, 4vw, 46px)',
           fontWeight: 700, color: '#1C2220', lineHeight: 1.2, marginBottom: '16px',
         }}>
-          支持我们继续做这件事
+          {copy.title}
         </h1>
         <p style={{ fontFamily: 'var(--font-display)', fontStyle: 'italic', fontSize: '15px', color: '#8FA499' }}>
-          Every act of support keeps this community alive.
+          {copy.intro}
         </p>
       </div>
 
-      <MerchSection />
-      <TicketsSection tickets={tickets} />
+      <MerchSection copy={copy} />
+      <TicketsSection tickets={tickets} copy={copy} activityLanguageCopy={activityLanguageCopy} />
     </div>
   )
 }

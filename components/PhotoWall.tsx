@@ -10,6 +10,8 @@ import {
   type KeyboardEvent,
   type MouseEvent,
 } from 'react'
+import type { ActivityLanguage } from '@/lib/types'
+import type { Dictionary } from '@/lib/i18n-types'
 
 export interface GalleryPoster {
   id: string
@@ -20,10 +22,14 @@ export interface GalleryPoster {
   categoryColor: string
   subType?: string | null
   description?: string | null
+  activityLanguage?: ActivityLanguage | null
 }
 
 interface PhotoWallProps {
   events: GalleryPoster[]
+  copy: Dictionary['home']['gallery']
+  activityLanguageCopy: Dictionary['activityLanguage']
+  allowFallback: boolean
 }
 
 type GalleryStyle = CSSProperties & {
@@ -111,11 +117,13 @@ function PosterSequence({
   duplicate,
   selectedId,
   onSelect,
+  copy,
 }: {
   events: GalleryPoster[]
   duplicate?: boolean
   selectedId?: string
   onSelect: (event: GalleryPoster, opener: HTMLButtonElement) => void
+  copy: Dictionary['home']['gallery']
 }) {
   return (
     <div
@@ -153,7 +161,7 @@ function PosterSequence({
               <button
                 type="button"
                 className="event-gallery-poster-button"
-                aria-label={duplicate ? undefined : `查看 ${event.title} 活动详情`}
+                aria-label={duplicate ? undefined : `${copy.viewDetails}: ${event.title}`}
                 aria-expanded={duplicate ? undefined : selectedId === event.id}
                 aria-controls={duplicate ? undefined : 'event-gallery-dialog'}
                 tabIndex={duplicate ? -1 : undefined}
@@ -174,11 +182,13 @@ function PosterRow({
   direction,
   selectedId,
   onSelect,
+  copy,
 }: {
   events: GalleryPoster[]
   direction: 'left' | 'right'
   selectedId?: string
   onSelect: (event: GalleryPoster, opener: HTMLButtonElement) => void
+  copy: Dictionary['home']['gallery']
 }) {
   const style: GalleryStyle = {
     '--gallery-duration': `${Math.max(52, events.length * 7)}s`,
@@ -187,15 +197,15 @@ function PosterRow({
   return (
     <div className="event-gallery-row">
       <div className={`event-gallery-track event-gallery-track--${direction}`} style={style}>
-        <PosterSequence events={events} selectedId={selectedId} onSelect={onSelect} />
-        <PosterSequence events={events} duplicate selectedId={selectedId} onSelect={onSelect} />
+        <PosterSequence events={events} selectedId={selectedId} onSelect={onSelect} copy={copy} />
+        <PosterSequence events={events} duplicate selectedId={selectedId} onSelect={onSelect} copy={copy} />
       </div>
     </div>
   )
 }
 
-export default function PhotoWall({ events }: PhotoWallProps) {
-  const posters = events.length > 0 ? events : FALLBACK_EVENTS
+export default function PhotoWall({ events, copy, activityLanguageCopy, allowFallback }: PhotoWallProps) {
+  const posters = events.length > 0 ? events : allowFallback ? FALLBACK_EVENTS : []
   const [isMobileGallery, setIsMobileGallery] = useState(false)
   const [selectedEvent, setSelectedEvent] = useState<GalleryPoster | null>(null)
   const [posterRatio, setPosterRatio] = useState(3 / 4)
@@ -296,8 +306,12 @@ export default function PhotoWall({ events }: PhotoWallProps) {
     posters.filter((_, posterIndex) => posterIndex % rowCount === rowIndex)
   ))
 
+  if (posters.length === 0) {
+    return <p className="event-gallery-empty">{copy.empty}</p>
+  }
+
   return (
-    <div className={`event-gallery ${selectedEvent ? 'is-detail-open' : ''}`} aria-label="雨山前往期活动海报">
+    <div className={`event-gallery ${selectedEvent ? 'is-detail-open' : ''}`} aria-label={copy.aria}>
       {posterRows.map((rowEvents, rowIndex) => (
         <PosterRow
           key={`${rowCount}-${rowIndex}`}
@@ -305,6 +319,7 @@ export default function PhotoWall({ events }: PhotoWallProps) {
           direction={rowIndex % 2 === 0 ? 'left' : 'right'}
           selectedId={selectedEvent?.id}
           onSelect={selectEvent}
+          copy={copy}
         />
       ))}
 
@@ -326,7 +341,7 @@ export default function PhotoWall({ events }: PhotoWallProps) {
             <button
               type="button"
               className="event-gallery-dialog-close"
-              aria-label={`关闭 ${selectedEvent.title} 活动详情`}
+              aria-label={`${copy.closeDetails}: ${selectedEvent.title}`}
               onClick={closeDialog}
             >
               <span aria-hidden="true">×</span>
@@ -347,7 +362,7 @@ export default function PhotoWall({ events }: PhotoWallProps) {
                 src={cloudinaryDetailUrl(selectedEvent.poster, 960)}
                 srcSet={detailPosterSrcSet(selectedEvent.poster)}
                 sizes="(max-width: 900px) calc(100vw - 24px), min(52vw, 675px)"
-                alt={`${selectedEvent.title} 活动海报`}
+                alt={`${selectedEvent.title} ${copy.posterAlt}`}
                 decoding="async"
                 draggable={false}
                 onLoad={(loadEvent) => {
@@ -373,6 +388,11 @@ export default function PhotoWall({ events }: PhotoWallProps) {
                 </span>
                 <h2 id="event-gallery-dialog-title">{selectedEvent.title}</h2>
                 {selectedEvent.date && <time dateTime={selectedEvent.date}>{selectedEvent.date}</time>}
+                {selectedEvent.activityLanguage && (
+                  <span className="event-gallery-detail-language">
+                    {activityLanguageCopy[selectedEvent.activityLanguage]}
+                  </span>
+                )}
               </header>
 
               {selectedEvent.description && (

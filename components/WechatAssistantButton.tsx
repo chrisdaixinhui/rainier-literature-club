@@ -2,10 +2,11 @@
 
 import Image from 'next/image'
 import { useEffect, useRef, useState } from 'react'
+import type { Dictionary } from '@/lib/i18n-types'
 
 const WECHAT_ASSISTANT_URL = 'https://u.wechat.com/MN7tB6VUCYU1PiKC1swL79Y'
 
-export default function WechatAssistantButton() {
+export default function WechatAssistantButton({ copy }: { copy: Dictionary['wechat'] }) {
   const [isOpen, setIsOpen] = useState(false)
   const dialogRef = useRef<HTMLDialogElement>(null)
 
@@ -25,8 +26,8 @@ export default function WechatAssistantButton() {
         onClick={() => setIsOpen(true)}
         aria-haspopup="dialog"
       >
-        <span>雨山前小助手 · 添加微信</span>
-        <small>WECHAT ASSISTANT</small>
+        <span>{copy.trigger}</span>
+        <small>{copy.triggerAccent}</small>
         <span className="wechat-assistant-trigger-arrow" aria-hidden="true">↗</span>
       </button>
 
@@ -49,24 +50,24 @@ export default function WechatAssistantButton() {
             type="button"
             className="wechat-assistant-close"
             onClick={() => setIsOpen(false)}
-            aria-label="关闭小助手微信二维码"
+            aria-label={copy.close}
           >
             <span aria-hidden="true" />
             <span aria-hidden="true" />
           </button>
 
           <div className="wechat-assistant-copy">
-            <p>WECHAT · 雨山前小助手</p>
-            <h2 id="wechat-assistant-title">扫码添加小助手</h2>
+            <p>{copy.eyebrow}</p>
+            <h2 id="wechat-assistant-title">{copy.title}</h2>
             <p id="wechat-assistant-description">
-              获取最新活动通知，也欢迎来和我们聊聊书与生活。
+              {copy.description}
             </p>
           </div>
 
           <div className="wechat-assistant-qr-frame">
             <Image
               src="/contact-wechat-assistant.jpg"
-              alt="雨山前小助手微信二维码"
+              alt={copy.qrAlt}
               width={1074}
               height={1455}
               sizes="(max-width: 480px) 78vw, 290px"
@@ -80,7 +81,7 @@ export default function WechatAssistantButton() {
             rel="noopener noreferrer"
             className="wechat-assistant-open-link"
           >
-            <span>在微信中打开</span>
+            <span>{copy.open}</span>
             <span aria-hidden="true">→</span>
           </a>
         </div>

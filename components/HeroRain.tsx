@@ -4,6 +4,8 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { useEffect, useRef } from 'react'
 import { useModal } from '@/context/ModalContext'
+import type { Dictionary } from '@/lib/i18n-types'
+import type { Locale } from '@/lib/i18n-routing'
 
 const MAX_MOUNTAIN_OFFSET = 40
 const POINTER_STRENGTH = 18
@@ -24,7 +26,13 @@ function ArrowMark() {
   )
 }
 
-export default function HeroRain() {
+export default function HeroRain({
+  locale,
+  copy,
+}: {
+  locale: Locale
+  copy: Dictionary['home']['hero']
+}) {
   const { openModal } = useModal()
   const heroRef = useRef<HTMLElement>(null)
   const landscapeRef = useRef<HTMLDivElement>(null)
@@ -162,7 +170,7 @@ export default function HeroRain() {
     >
       <div className="home-hero-frame">
         <div className="home-hero-meta">
-          <p>Seattle · Chinese Literature Society</p>
+          <p>{copy.eyebrow}</p>
           <p><span>47.6062° N</span><span>122.3321° W</span></p>
         </div>
 
@@ -171,30 +179,15 @@ export default function HeroRain() {
             <h1
               id="home-hero-title"
               className="home-hero-title"
-              aria-label="在雨山前，重逢中文"
+              aria-label={copy.title}
             >
-              <span>
-                <span className="home-hero-title-italic">在</span>
-                <Image
-                  className="home-hero-logo"
-                  src="/images/hero-logo.png"
-                  alt=""
-                  aria-hidden="true"
-                  width={2265}
-                  height={662}
-                  loading="eager"
-                  sizes="(max-width: 700px) 55vw, 21vw"
-                />
-              </span>
-              <span>
-                <span className="home-hero-title-italic">重逢</span>
-                <span className="home-hero-title-emphasis">中文</span>
-              </span>
+              <span>{copy.titleLine1}</span>
+              <span>{copy.titleLine2}</span>
             </h1>
 
             <div className="home-hero-intro">
-              <p>根植西雅图的中文阅读社群</p>
-              <small>在异乡，以阅读、谈话与相聚，让母语继续发生。</small>
+              <p>{copy.intro}</p>
+              <small>{copy.detail}</small>
             </div>
           </div>
 
@@ -211,7 +204,7 @@ export default function HeroRain() {
               <Image
                 className="home-hero-mountain"
                 src="/images/hero-mountain-foreground.png"
-                alt="蓝色网点印刷风格的山形"
+                alt={copy.imageAlt}
                 width={860}
                 height={521}
                 loading="eager"
@@ -228,15 +221,15 @@ export default function HeroRain() {
                 data-od-id="home-join-cta"
                 onClick={openModal}
               >
-                <span>加入我们 · Join Us</span>
+                <span>{copy.join}</span>
                 <ArrowMark />
               </button>
               <Link
-                href="/activities"
+                href={locale === 'en' ? '/en/activities' : '/activities'}
                 className="home-hero-cta home-hero-cta-primary"
                 data-od-id="home-activities-cta"
               >
-                <span>查看活动</span>
+                <span>{copy.activities}</span>
                 <ArrowMark />
               </Link>
             </div>

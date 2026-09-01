@@ -9,8 +9,12 @@
       "time": "14:00",
       "location": "Seattle, WA",
       "locationDetail": "地点待公布",
+      "locationEn": "Seattle, WA",
+      "locationDetailEn": "Venue to be announced",
       "description": "雨山前Talk第三期即将上线。对谈嘉宾筹划中，敬请期待。购票通道即将开放。",
       "descriptionEn": "YSQ Talk Vol.3 is coming. Guest speaker to be announced. Tickets opening soon.",
+      "publishedEn": true,
+      "activityLanguage": "zh",
       "poster": null,
       "featured": true,
       "registerUrl": "#",
@@ -105,6 +109,9 @@
           "comingSoon": true,
           "poster": null,
           "description": "第三期对谈嘉宾筹划中，即将公布。票务通道同步开放。",
+          "descriptionEn": "The third Rainier Talk is in preparation. Guest and ticket details will be announced soon.",
+          "publishedEn": true,
+          "activityLanguage": "zh",
           "registerUrl": "#"
         },
         {
