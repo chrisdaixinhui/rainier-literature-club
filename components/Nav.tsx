@@ -41,19 +41,36 @@ export default function Nav({
       return () => clearTimeout(timer)
     }
 
-    const hero = document.querySelector<HTMLElement>('[data-od-id="home-hero"]')
-    if (!hero) return
+    let observer: IntersectionObserver | null = null
+    let mutationObserver: MutationObserver | null = null
 
-    const observer = new IntersectionObserver(
-      ([entry]) => setHeroVisible(entry.isIntersecting),
-      {
-        rootMargin: '-92px 0px 0px',
-        threshold: 0,
-      },
-    )
+    const attach = (hero: HTMLElement) => {
+      observer = new IntersectionObserver(
+        ([entry]) => setHeroVisible(entry.isIntersecting),
+        { rootMargin: '-92px 0px 0px', threshold: 0 },
+      )
+      observer.observe(hero)
+    }
 
-    observer.observe(hero)
-    return () => observer.disconnect()
+    const existingHero = document.querySelector<HTMLElement>('[data-od-id="home-hero"]')
+    if (existingHero) {
+      attach(existingHero)
+    } else {
+      mutationObserver = new MutationObserver(() => {
+        const hero = document.querySelector<HTMLElement>('[data-od-id="home-hero"]')
+        if (hero) {
+          mutationObserver?.disconnect()
+          mutationObserver = null
+          attach(hero)
+        }
+      })
+      mutationObserver.observe(document.body, { childList: true, subtree: true })
+    }
+
+    return () => {
+      observer?.disconnect()
+      mutationObserver?.disconnect()
+    }
   }, [isHome])
 
   const isHeroNav = isHome && heroVisible
