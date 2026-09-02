@@ -1,6 +1,6 @@
 # 雨山前 Rainier Literature Society — 网站产品需求文档
 
-> **文档版本**：v0.16<br>
+> **文档版本**：v0.17<br>
 > **创建日期**：2026-05-12<br>
 > **更新日期**：2026-09-02<br>
 > **产品阶段**：上线前验收<br>
@@ -30,7 +30,7 @@
 |---|---|---|
 | 品牌展示 | 建立可信、有文学气质且可被分享的线上门面 | 已有完整页面；尚无品牌认知指标 |
 | 活动增长 | 帮助用户发现并报名雨山前及友社活动 | 已有活动流与报名外链；尚无点击埋点 |
-| 社群沉淀 | 通过邮件与微信形成可持续触达渠道 | Mailchimp 与微信入口已接入；尚无转化看板 |
+| 社群沉淀 | 通过邮件与微信形成可持续触达渠道 | 邮件订阅（架构迁移中，见第 9 章）与微信入口已接入；尚无转化看板 |
 | 内容运营 | 让运营者无需改代码即可维护活动与每日一句 | Notion CMS 已接入 |
 | 内容资产 | 将往期活动沉淀为可归档、可分类浏览的社群档案 | 活动归档、分类筛选、海报画廊与 Footer 每日一句已实现；全文搜索未实现 |
 | 商业支持 | 承接票务、周边与捐赠 | 票务结构已实现；周边与捐赠未上线 |
@@ -65,7 +65,7 @@
 | 活动页 `/activities`、`/en/activities` | ✅ | 按当前语言展示雨山前近期活动、友社推荐、往期分类筛选与详情 |
 | 支持页 `/support`、`/en/support` | ⚠️ | 中英文周边占位与双档票务已实现；捐赠能力未上线，当前无公开捐赠入口 |
 | 全局导航 | ✅ | Logo、桌面订阅 CTA、移动全屏菜单与常驻「中 / EN」语言角标；移动菜单具有展开状态语义 |
-| 全局订阅 | ✅ | 中英文 Modal、邮箱校验、Mailchimp 双重确认请求与联系人语言码 |
+| 全局订阅 | ✅ | 中英文 Modal、邮箱校验；后端邮件服务商正从 Mailchimp 迁移至 Brevo + Supabase，详见第 9 章「邮件营销工作流设计」 |
 | 全局 Footer | ✅ | 品牌与页尾导航、社交链接、微信小助手、每日一句、动态年份 |
 | 内容后台 | ✅ | Notion 活动库与每日一句库 |
 | 海报持久化 | ✅ | Notion 文件转存 Cloudinary、URL 回写、缓存刷新 |
@@ -131,7 +131,7 @@
 主要阻塞项：
 
 1. Notion 中的近期活动、友社活动、票价和链接仍是测试数据；
-2. Mailchimp 确认邮件完整链路尚未用真实测试邮箱验收；
+2. 邮件订阅服务商正从 Mailchimp 迁移至 Brevo + Supabase（见第 9 章），迁移完成前双重确认邮件完整链路尚未用真实测试邮箱验收；
 3. Vercel 生产部署已上线并可公开访问；自定义域名、环境变量与 Cron 配置核验、线上完整回归仍未完成；
 4. 完整端到端自动化与外部服务失败监控仍未完成；
 5. 移动菜单背景滚动锁定尚未完成。
@@ -144,9 +144,9 @@
 |---|---:|---|
 | 页面主体与核心交互 | 基本完成 | 3 组共享中英文页面、全局导航/Footer、订阅与微信 Dialog、活动筛选/展开及首页滚动/轮播交互均已落地 |
 | 内容读取与运营自动化 | 已完成 | Notion 双库读取、分页、状态计算、持久快照、Cloudinary 转存回写、手动刷新与 Cron 接口已实现 |
-| 第三方服务代码接入 | 已完成 | Notion、Cloudinary、Mailchimp 和 Vercel Cron 的代码与环境变量入口齐全 |
+| 第三方服务代码接入 | 已完成（订阅服务迁移中） | Notion、Cloudinary 和 Vercel Cron 的代码与环境变量入口齐全；订阅服务正从 Mailchimp 迁移至 Brevo + Supabase，见第 9 章 |
 | 真实业务内容 | 未完成 | 唯一近期雨山前活动、唯一友社活动、唯一票务均为测试数据 |
-| 第三方完整链路验收 | 部分完成 | Notion 只读访问与本地接口已验证；Mailchimp 确认邮件、Cloudinary 新图转存、线上 Cron 尚未做生产验收 |
+| 第三方完整链路验收 | 部分完成 | Notion 只读访问与本地接口已验证；Cloudinary 新图转存、线上 Cron 尚未做生产验收；订阅服务商迁移（Mailchimp → Brevo + Supabase，见第 9 章）尚未验收 |
 | 发布工程 | 部分完成 | Vercel 生产部署已上线并可公开访问（HTTPS）；自定义域名、环境变量与 Cron 配置核验、线上完整回归与回滚方案仍无完成证据 |
 | 质量保障 | 部分完成 | lint、TypeScript、国际化聚焦测试、生产构建和人工关键路径通过；完整端到端自动化、限流、监控与部分 SEO 增强尚缺 |
 
@@ -193,7 +193,7 @@
 | 了解品牌 | 首页 Hero → 宣言 → 关于我们 → 社群照片 | 用户清楚“是谁、在哪里、做什么” |
 | 找近期活动 | 首页近期活动或移动菜单 → 活动页近期区 → 报名或详情外链 | 真实活动、来源、时间、地点、海报与链接完整 |
 | 浏览往期内容 | 首页画廊或活动页往期区 → 详情 | 能查看海报、分类、日期与完整介绍 |
-| 订阅邮件 | 导航或首页 Hero → 输入邮箱 → 确认邮件 | Mailchimp 状态从 `pending` 变为 `subscribed` |
+| 订阅邮件 | 导航或首页 Hero → 输入邮箱 → 确认邮件 | 邮件服务商完成双重确认后联系人状态转为已订阅（详见第 9 章） |
 | 添加微信 | Footer 小助手 → 扫码或微信外链 | 二维码清晰、外链可打开 |
 | 支持社群 | 支持页 → 票务或周边预告 | 票务链接真实有效；周边明确标注为未上线 |
 
@@ -391,15 +391,13 @@
 
 **服务端流程**：
 
-1. 标准化并校验邮箱；
-2. 服务端调用 Mailchimp Marketing API；
-3. 新联系人以 `pending` 状态写入 Audience；
-4. 同时把 `zh` 或 `en` 写入联系人 `language`；
-5. 用户点击 Mailchimp 确认邮件后才成为 `subscribed`；
-6. 已存在或等待确认的邮箱按当前语言返回 409；
-7. 配置缺失返回 503，外部失败返回 502，反馈按当前语言返回。
+订阅服务端流程正从 Mailchimp 迁移至 Brevo + Supabase 三层架构（Supabase 留档 → Brevo 双重确认 → 常规推送），完整设计、环境变量与实施清单见第 9 章「邮件营销工作流设计」。迁移完成前，以下通用要求保持不变：
 
-英文订阅弹窗明确说明周信目前仍以中文为主。中文与英文确认邮件、成功页及错误提示需在 Mailchimp Audience 的 `Translate it` 后台配置并分别人工验收。
+- 标准化并校验邮箱；
+- 已存在或等待确认的邮箱按当前语言返回 409；
+- 配置缺失返回 503，外部失败返回 502，反馈按当前语言返回。
+
+英文订阅弹窗明确说明周信目前仍以中文为主。中英文双重确认邮件、成功页及错误提示需在邮件服务商后台配置并分别人工验收。
 
 上线前应补充基础频率限制，降低公开接口被批量滥用的风险。
 
@@ -543,7 +541,7 @@ Notion 每日一句数据库 → 启用项过滤 → 日期轮询 → 全局 Foo
 | 样式 | Tailwind CSS 4.3 + 全局 CSS + 组件内样式 |
 | 内容源 | Notion API 2022-06-28 |
 | 图片 | Cloudinary + 本地静态素材 |
-| 订阅 | Mailchimp Marketing API |
+| 订阅 | Brevo（邮件发送/自动化）+ Supabase（订阅者存储），迁移中，见第 9 章；迁移前为 Mailchimp Marketing API |
 | 部署目标 | Vercel |
 | 动画 | React Hooks、CSS Transition/Keyframes、滚动进度计算 |
 
@@ -557,7 +555,7 @@ Notion 每日一句数据库 → 启用项过滤 → 日期轮询 → 全局 Foo
 |---|---|---|---|
 | `/api/revalidate` | POST | Admin/Cron | 标记活动与句子缓存待重新验证 |
 | `/api/sync-images` | GET/POST | Admin/Cron | 刷新活动快照并同步 Notion 海报至 Cloudinary |
-| `/api/subscribe` | POST | 公开 | 校验邮箱，按 `locale` 返回反馈，并以 `pending` 和 `zh`/`en` 联系人语言写入 Mailchimp |
+| `/api/subscribe` | POST | 公开 | 校验邮箱，按 `locale` 返回反馈；写入逻辑正从 Mailchimp 迁移至 Supabase + Brevo（见第 9 章） |
 
 ### 6.3 环境变量
 
@@ -574,10 +572,15 @@ CRON_SECRET
 MAILCHIMP_API_KEY
 MAILCHIMP_AUDIENCE_ID
 MAILCHIMP_SERVER_PREFIX
+BREVO_API_KEY
+BREVO_LIST_ID
+BREVO_DOI_TEMPLATE_ID
+SUPABASE_URL
+SUPABASE_SERVICE_ROLE_KEY
 SITE_URL
 ```
 
-所有密钥均为服务端变量，不得增加 `NEXT_PUBLIC_` 前缀或提交到 Git。
+所有密钥均为服务端变量，不得增加 `NEXT_PUBLIC_` 前缀或提交到 Git。`MAILCHIMP_API_KEY`、`MAILCHIMP_AUDIENCE_ID`、`MAILCHIMP_SERVER_PREFIX` 待第 9 章所述迁移完成、确认 Mailchimp 端不再需要后移除；`BREVO_*` 与 `SUPABASE_*` 为迁移目标架构新增变量，详见第 9 章。
 
 ### 6.4 安全与隐私
 
@@ -586,7 +589,7 @@ SITE_URL
 - 管理接口鉴权；
 - 密钥仅在服务端读取；
 - 管理密钥使用恒定时间比较；
-- 邮箱只发送到 Mailchimp，不写入本地数据库；
+- 邮箱当前只发送到 Mailchimp，不写入本地数据库；迁移至 Brevo + Supabase 后邮箱将留存于自有 Supabase 订阅者表，需同步更新隐私政策与数据处理说明（见第 9 章）；
 - 外链使用 `noopener` / `noreferrer`；
 - 邮箱长度和格式基础校验。
 
@@ -594,9 +597,9 @@ SITE_URL
 
 - 订阅接口频率限制与异常流量监控；
 - 隐私政策、邮件用途与退订说明；
-- 第三方服务的数据处理说明；
+- 第三方服务的数据处理说明（含 Supabase 自有订阅者数据的留存与访问权限，见第 9 章）；
 - 定期轮换管理与 Cron 密钥；
-- Cloudinary / Notion / Mailchimp 最小权限检查。
+- Cloudinary / Notion / Brevo / Supabase 最小权限检查。
 
 ### 6.5 SEO 与可发现性
 
@@ -620,7 +623,7 @@ app/
   [locale]/support/page.tsx   中英文共享支持页
   api/revalidate/route.ts      缓存刷新
   api/sync-images/route.ts     海报同步
-  api/subscribe/route.ts       Mailchimp 订阅
+  api/subscribe/route.ts       订阅入口（迁移至 Brevo + Supabase，见第 9 章）
 
 components/
   LanguageSwitcher.tsx         常驻「中 / EN」语言角标
@@ -710,11 +713,11 @@ vercel.json                    10 分钟图片同步 Cron
 - [ ] 删除或隐藏 3 条测试活动及全部 `example.com` 链接；
 - [ ] 填入真实近期活动标题、海报、时间、地点、正文、报名链接和票价；
 - [x] 暂时隐藏全部公开捐赠入口；恢复入口前仍需确认平台与业务规则；
-- [ ] 使用真实测试邮箱完成 Mailchimp `pending → confirmation email → subscribed` 验收；
+- [ ] 完成订阅服务商迁移（Mailchimp → Brevo + Supabase，见第 9 章），并使用真实测试邮箱完成双重确认全链路验收；
 - [ ] 在 Vercel 核验全部环境变量和 Cron 是否已正确配置；
 - [x] 完成 Vercel 生产部署，站点已可公开访问（HTTPS）；
 - [ ] 确认自定义域名，并完成线上桌面/移动完整回归；
-- [ ] 验证 Notion、Cloudinary、Mailchimp 和微信所有真实外链；
+- [ ] 验证 Notion、Cloudinary、Brevo（迁移前为 Mailchimp）和微信所有真实外链；
 - [ ] 更新静态兜底，使外部服务不可用时仍有有效近期内容与票务空状态；
 - [ ] 清理提交范围，避免将 `.codex-tmp/`、`outputs/` 和临时预览文件误提交。
 
@@ -767,7 +770,54 @@ vercel.json                    10 分钟图片同步 Cron
 
 ---
 
-## 9. 待业务确认
+## 9. 邮件营销工作流设计
+
+> **当前状态**：⏳ 设计阶段，尚未实现。`app/api/subscribe/route.ts` 与订阅相关基础设施目前仍使用 Mailchimp；本章描述迁移到 Brevo + Supabase 后的目标架构、实施清单与与现有系统的边界。
+
+### 9.1 背景
+
+现有 `app/api/subscribe/route.ts` 直接调用 Mailchimp API 完成订阅 + 双重确认，但 Mailchimp 免费版已取消自动化邮件功能（欢迎信等），需要付费才能使用。决定迁移到 Brevo（免费版保留自动化，2000 联系人以内免费，300 封/天发信额度），并引入 Supabase 作为订阅者数据的自有存储（同时为未来的个性化推荐预留 pgvector 向量库能力）。
+
+### 9.2 整体架构：三层
+
+#### 第一层：订阅入口（改造现有 `/api/subscribe`）
+
+- 用户在网站提交邮箱 → 后端先写入 Supabase 的订阅者表（留档，便于查询/分群/未来个性化用）→ 再调用 Brevo 的 `POST /v3/contacts/doubleOptinConfirmation` 接口，传入 `email`、`includeListIds`、`templateId`（双重确认邮件模板）、`redirectionUrl`、`attributes`（至少包含 `SOURCE: 'website'`、`LANG: locale`）。
+- Brevo 后台需要：开启对应 List 的 Double opt-in、建好双重确认邮件模板、拿到 `templateId`。
+- 环境变量新增：`BREVO_API_KEY`、`BREVO_LIST_ID`、`BREVO_DOI_TEMPLATE_ID`、`SUPABASE_URL`、`SUPABASE_SERVICE_ROLE_KEY`（或按项目约定的 Supabase key 命名）。
+- 两步写入（Supabase + Brevo）要考虑失败处理：如果 Supabase 写成功但 Brevo 调用失败，记录一个"待重试"状态而不是让用户看到失败提示，避免用户重复提交。
+
+#### 第二层：常规推送（两条内容线）
+
+- **每周活动推送**：数据来自现有 Notion 活动同步（`lib/notion.ts`），定时任务（复用已有 Vercel Cron 机制）拉取近期活动 → 渲染邮件模板 → 通过 Brevo 的 campaign API 发送。
+- **每周文学文摘**：内容为人工挑选文章 + 编辑导读，过一遍现有 writing skill 润色文风后，套模板通过 Brevo 发送。
+- 这两条内容现阶段都是结构化/人工产出内容，不需要引入 RAG。
+
+#### 第三层（未来规划，非本阶段实现）：个性化文摘 + agent 生成
+
+- 先做"按兴趣标签分群"（不需要 RAG）：订阅表单增加兴趣选项（如诗歌/小说/文学评论），存入 Supabase 的 `attributes`/`tags` 字段，同步到 Brevo 联系人属性，文摘按标签分 2–3 个版本发送，验证个性化是否提升打开率。
+- 验证有效后再上真正的个性化：建立素材库（向量化存入 Supabase pgvector）→ agent 按用户标签/历史行为检索相关素材 → agent 起草个性化导语 → 过 writing skill 润色 → 通过 Brevo 的 Data Feed 功能（实时从自有 API 拉取个性化内容渲染进邮件）或改为完全自建发信（如 Resend）分发给各用户。
+- 注：Brevo Data Feed 功能是否在免费版可用尚未验证，实现这一阶段前需先在 Brevo 后台测试确认；如果被限制在付费版，退路是仅用 Brevo 的 transactional email API（免费版明确不受限）做纯发信通道，个性化逻辑完全在自有代码里处理。
+
+### 9.3 需要实现的改动清单
+
+- [ ] Supabase 项目搭建 + 订阅者表结构设计（字段至少包含：`email`、`locale`、`source`、`interest_tags`、`subscribed_at`、`status`、`brevo_contact_id`）；
+- [ ] 重写 `app/api/subscribe/route.ts`：替换 Mailchimp 调用为 Supabase 写入 + Brevo `doubleOptinConfirmation` 调用；
+- [ ] Brevo 后台配置：List、双重确认模板、欢迎信自动化工作流（触发条件为"双重确认完成"）；
+- [ ] 新建每周活动推送的邮件模板 + 定时发送任务（复用现有 Cron 基础设施）；
+- [ ] 新建每周文摘的邮件模板 + 内容录入/发送流程（先做人工版本，不做自动化）；
+- [ ] `.env.local` 和 Vercel 环境变量新增上述 Brevo/Supabase 相关变量，移除不再使用的 `MAILCHIMP_*` 变量（确认迁移完成、Mailchimp 端不再需要后再移除）。
+
+### 9.4 与现有架构的关系
+
+- **Notion**：只读复用，不改动 `lib/notion.ts` 现有读取逻辑；每周活动推送是该数据的新消费方，不引入新的写入路径。
+- **Cloudinary**：不涉及，海报同步链路不变。
+- **Vercel Cron**：复用现有机制，需新增定时任务条目（当前 `vercel.json` 仅有 `/api/sync-images` 一个每日任务）。
+- **数据留存与隐私**：与当前"邮箱只发送到 Mailchimp，不写入本地数据库"的安全声明存在冲突——迁移后邮箱等 PII 将留存于自有 Supabase，需同步更新隐私政策与数据处理说明（见 §6.4、§10 待业务确认）。
+
+---
+
+## 10. 待业务确认
 
 1. 正式域名与品牌英文写法是否最终确定；
 2. 2026 秋季首个真实活动及友社推荐内容；
@@ -776,7 +826,9 @@ vercel.json                    10 分钟图片同步 Cron
 5. Newsletter 发件人、回复地址、频率和模板；
 6. 每日一句按西雅图日期还是访问者本地日期切换；
 7. 周边商品是否进入近期路线图；
-8. 是否在上线首版接入基础分析工具与隐私政策。
+8. 是否在上线首版接入基础分析工具与隐私政策；
+9. Brevo/Supabase 迁移后，邮箱等 PII 的隐私政策更新、数据留存与删除机制如何设计；
+10. Brevo Data Feed 功能是否在免费版可用，需在后台验证后才能规划第三层个性化方案的实现路径。
 
 ---
 
